@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Command Editor - Update Loan Amount</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: #ecf0f1;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .status-indicator {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            background-color: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+        }
+
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #229954;
+        }
+
+        .tabs {
+            background: white;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #ecf0f1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-nav {
+            display: flex;
+            padding: 0 20px;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #7f8c8d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            color: #e74c3c;
+            border-bottom-color: #e74c3c;
+        }
+
+        .tab-button:hover:not(.active) {
+            color: #2c3e50;
+        }
+
+        .tab-content {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-panel {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-section h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-icon {
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .form-group .required {
+            color: #e74c3c;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1);
+        }
+
+        .form-control.textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-input:checked + .toggle-slider {
+            background-color: #e74c3c;
+        }
+
+        .toggle-input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .multi-input {
+            margin-bottom: 10px;
+        }
+
+        .multi-input-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .multi-input-item input {
+            flex: 1;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .add-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .code-editor {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .test-section h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .test-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .test-result {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+
+        .validation-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+            color: #22543d;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .usage-stats {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn">←</button>
+                <h1>Update Loan Amount</h1>
+                <div class="status-indicator">Ready</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary">Test Command</button>
+                <button class="btn btn-secondary">Preview</button>
+                <button class="btn btn-success">Save Changes</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <nav class="tab-nav">
+                <button class="tab-button active" data-tab="basic">Basic Settings</button>
+                <button class="tab-button" data-tab="voice">Voice Configuration</button>
+                <button class="tab-button" data-tab="action">Action Logic</button>
+                <button class="tab-button" data-tab="advanced">Advanced</button>
+                <button class="tab-button" data-tab="usage">Usage & Analytics</button>
+            </nav>
+        </div>
+
+        <div class="tab-content">
+            <!-- Basic Settings Tab -->
+            <div class="tab-panel active" id="basic">
+                <div class="form-section">
+                    <h3><span class="section-icon">⚙️</span>Command Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Command Category <span class="required">*</span></label>
+                            <select class="form-control">
+                                <option value="search">1. Search</option>
+                                <option value="updates" selected>2. Data Updates</option>
+                                <option value="services">3. Services</option>
+                                <option value="mi">4. MI Quotes</option>
+                                <option value="documents">5. Documents</option>
+                                <option value="tasks">6. Task Management</option>
+                                <option value="applications">7. New Applications</option>
+                                <option value="bi">8. Business Intelligence</option>
+                                <option value="communication">9. Communication</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Priority Level</label>
+                            <select class="form-control">
+                                <option value="1">High (1)</option>
+                                <option value="2" selected>Normal (2)</option>
+                                <option value="3">Low (3)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Main Command Name <span class="required">*</span></label>
+                        <input type="text" class="form-control" value="Update Loan Amount" placeholder="Enter main command name">
+                        <div class="help-text">This is the primary identifier for this command</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sub-Command Name</label>
+                        <input type="text" class="form-control" value="Loan Amount" placeholder="Enter sub-command name (optional)">
+                        <div class="help-text">Used for nested commands under main categories</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Command Description</label>
+                        <textarea class="form-control textarea" placeholder="Describe what this command does">Allows loan officers to update the loan amount for the current loan file through voice command. Validates amount and updates the BASE_LOAN_AMOUNT field in Encompass.</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Command Status</label>
+                        <div class="toggle-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Active (visible to users)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Configuration Tab -->
+            <div class="tab-panel" id="voice">
+                <div class="form-section">
+                    <h3><span class="section-icon">🎤</span>Trigger Phrases</h3>
+                    
+                    <div class="form-group">
+                        <label>Voice Trigger Phrases <span class="required">*</span></label>
+                        <div class="multi-input">
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="Loan Amount" placeholder="Enter trigger phrase">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="Update loan amount" placeholder="Enter trigger phrase">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="Change loan amount" placeholder="Enter trigger phrase">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                        </div>
+                        <button class="add-btn">+ Add Another Phrase</button>
+                        <div class="help-text">Multiple trigger phrases help improve voice recognition accuracy</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Wake Word Requirement</label>
+                            <select class="form-control">
+                                <option value="required" selected>Require "Hey LOA"</option>
+                                <option value="optional">Optional wake word</option>
+                                <option value="custom">Custom wake word</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Confidence Threshold</label>
+                            <input type="number" class="form-control" value="0.85" min="0.1" max="1.0" step="0.05">
+                            <div class="help-text">Minimum confidence for voice recognition (0.1 - 1.0)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3><span class="section-icon">💬</span>Voice Responses</h3>
+                    
+                    <div class="form-group">
+                        <label>Primary Response Template <span class="required">*</span></label>
+                        <textarea class="form-control textarea" placeholder="Enter LOA's response template">What is the new loan amount for the loan?</textarea>
+                        <div class="help-text">Use {variables} for dynamic content like {borrowerName} or {currentAmount}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Response Variations</label>
+                        <div class="multi-input">
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="What would you like the new loan amount to be?" placeholder="Enter response variation">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="Please tell me the updated loan amount" placeholder="Enter response variation">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                        </div>
+                        <button class="add-btn">+ Add Response Variation</button>
+                        <div class="help-text">Multiple responses make conversations feel more natural</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Confirmation Required</label>
+                            <div class="toggle-group">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="toggle-input" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span>Require user confirmation before executing</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Context Required</label>
+                            <div class="toggle-group">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="toggle-input" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span>Requires active loan file context</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice Testing Section -->
+                <div class="test-section">
+                    <h4>🧪 Test Voice Recognition</h4>
+                    <div class="test-input-group">
+                        <input type="text" class="form-control" placeholder="Type a test phrase to see how LOA would respond" style="flex: 1;">
+                        <button class="btn btn-primary">Test Response</button>
+                    </div>
+                    <div class="test-result">
+                        Test results will appear here...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Logic Tab -->
+            <div class="tab-panel" id="action">
+                <div class="form-section">
+                    <h3><span class="section-icon">⚡</span>Action Configuration</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Action Type <span class="required">*</span></label>
+                            <select class="form-control">
+                                <option value="field_update" selected>Field Update</option>
+                                <option value="api_call">API Call</option>
+                                <option value="service_trigger">Service Trigger</option>
+                                <option value="workflow">Workflow</option>
+                                <option value="custom">Custom Logic</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Field ID</label>
+                            <input type="text" class="form-control" value="1109" placeholder="Enter Encompass field ID">
+                            <div class="help-text">BASE_LOAN_AMOUNT field in Encompass</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>API Endpoint</label>
+                        <input type="text" class="form-control" value="/api/loans/{loanId}/fields/1109" placeholder="Enter API endpoint">
+                        <div class="help-text">REST endpoint for this action</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Validation Rules</label>
+                        <div class="multi-input">
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="required" placeholder="Enter validation rule">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="numeric" placeholder="Enter validation rule">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="min:1000" placeholder="Enter validation rule">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="max:10000000" placeholder="Enter validation rule">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                        </div>
+                        <button class="add-btn">+ Add Validation Rule</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Required Permissions</label>
+                        <div class="multi-input">
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="loan_officer" placeholder="Enter required permission">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="update_loan_fields" placeholder="Enter required permission">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                        </div>
+                        <button class="add-btn">+ Add Permission</button>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3><span class="section-icon">🤖</span>AI Logic Programming</h3>
+                    
+                    <div class="form-group">
+                        <label>AI Processing Instructions</label>
+                        <textarea class="code-editor" placeholder="Enter AI logic programming instructions">
+// AI Logic for Loan Amount Update
+if (userInput.includes('million')) {
+    amount = parseFloat(userInput) * 1000000;
+} else if (userInput.includes('thousand') || userInput.includes('k')) {
+    amount = parseFloat(userInput) * 1000;
+} else {
+    amount = parseFloat(userInput);
+}
+
+// Validation
+if (amount < 1000) {
+    return { error: "Loan amount must be at least $1,000" };
+}
+if (amount > 10000000) {
+    return { error: "Loan amount cannot exceed $10 million" };
+}
+
+// Format for display
+const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+}).format(amount);
+
+return {
+    fieldUpdate: {
+        fieldId: "1109",
+        value: amount,
+        displayValue: formattedAmount
+    },
+    confirmationMessage: `Updating loan amount to ${formattedAmount}. Is this correct?`
+};
+                        </textarea>
+                        <div class="help-text">JavaScript-like syntax for processing user input and generating responses</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Error Handling</label>
+                            <select class="form-control">
+                                <option value="retry" selected>Ask user to retry</option>
+                                <option value="fallback">Use fallback response</option>
+                                <option value="escalate">Escalate to human</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Success Action</label>
+                            <select class="form-control">
+                                <option value="confirm" selected>Show confirmation</option>
+                                <option value="silent">Update silently</option>
+                                <option value="continue">Continue to next step</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Logic Testing Section -->
+                <div class="test-section">
+                    <h4>🧪 Test AI Logic</h4>
+                    <div class="test-input-group">
+                        <input type="text" class="form-control" placeholder="Test with sample user input (e.g., 'four hundred thousand')" style="flex: 1;">
+                        <button class="btn btn-primary">Test Logic</button>
+                    </div>
+                    <div class="test-result">
+                        AI logic test results will appear here...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Tab -->
+            <div class="tab-panel" id="advanced">
+                <div class="form-section">
+                    <h3><span class="section-icon">🔧</span>Advanced Settings</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Session Timeout (seconds)</label>
+                            <input type="number" class="form-control" value="30" min="5" max="300">
+                            <div class="help-text">How long to wait for user response</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Retry Attempts</label>
+                            <input type="number" class="form-control" value="3" min="1" max="5">
+                            <div class="help-text">Number of retry attempts on failure</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Command Dependencies</label>
+                        <div class="multi-input">
+                            <div class="multi-input-item">
+                                <input type="text" class="form-control" value="Find Loan" placeholder="Enter dependent command">
+                                <button class="remove-btn">Remove</button>
+                            </div>
+                        </div>
+                        <button class="add-btn">+ Add Dependency</button>
+                        <div class="help-text">Commands that must be available for this command to work</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Logging Level</label>
+                        <select class="form-control">
+                            <option value="debug">Debug (all events)</option>
+                            <option value="info" selected>Info (important events)</option>
+                            <option value="warn">Warning (errors only)</option>
+                            <option value="error">Error (critical issues)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Feature Flags</label>
+                        <div class="toggle-group" style="margin-bottom: 10px;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Enable analytics tracking</span>
+                        </div>
+                        <div class="toggle-group" style="margin-bottom: 10px;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Beta testing mode</span>
+                        </div>
+                        <div class="toggle-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Enable voice feedback</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3><span class="section-icon">🔒</span>Security & Compliance</h3>
+                    
+                    <div class="form-group">
+                        <label>Data Classification</label>
+                        <select class="form-control">
+                            <option value="public">Public</option>
+                            <option value="internal" selected>Internal</option>
+                            <option value="confidential">Confidential</option>
+                            <option value="restricted">Restricted</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Regulation C Compliance</label>
+                        <div class="toggle-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Subject to Regulation C requirements</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Audit Requirements</label>
+                        <div class="toggle-group" style="margin-bottom: 10px;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Log all command executions</span>
+                        </div>
+                        <div class="toggle-group" style="margin-bottom: 10px;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Record user confirmations</span>
+                        </div>
+                        <div class="toggle-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-input">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Require digital signature</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage & Analytics Tab -->
+            <div class="tab-panel" id="usage">
+                <div class="usage-stats">
+                    <h3>Usage Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">147</div>
+                            <div class="stat-label">Total Uses</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">94.5%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">2.3s</div>
+                            <div class="stat-label">Avg Response Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">8</div>
+                            <div class="stat-label">Failed Attempts</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3><span class="section-icon">📊</span>Performance Metrics</h3>
+                    
+                    <div class="form-group">
+                        <label>Voice Recognition Accuracy</label>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 5px;">
+                            <div style="font-size: 18px; font-weight: bold; color: #27ae60;">87.2%</div>
+                            <div style="font-size: 12px; color: #666;">Based on last 100 attempts</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Most Common Trigger</label>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace;">
+                                "loan amount" (67%)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Average Session Length</label>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace;">
+                                12.4 seconds
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Common Failure Reasons</label>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                            <div style="margin-bottom: 8px;">
+                                <strong>Low confidence (45%)</strong> - User pronunciation unclear
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>Validation error (30%)</strong> - Invalid loan amount values
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>Permission denied (15%)</strong> - User lacks required permissions
+                            </div>
+                            <div>
+                                <strong>API timeout (10%)</strong> - System integration issues
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3><span class="section-icon">🕒</span>Recent Activity</h3>
+                    
+                    <div style="background: white; border: 1px solid #ddd; border-radius: 6px;">
+                        <div style="padding: 12px; border-bottom: 1px solid #f1f1f1; font-size: 14px; color: #666;">
+                            <strong>Today, 2:45 PM</strong> - John Smith used "update loan amount" - Success
+                        </div>
+                        <div style="padding: 12px; border-bottom: 1px solid #f1f1f1; font-size: 14px; color: #666;">
+                            <strong>Today, 1:23 PM</strong> - Sarah Johnson used "loan amount" - Success
+                        </div>
+                        <div style="padding: 12px; border-bottom: 1px solid #f1f1f1; font-size: 14px; color: #e74c3c;">
+                            <strong>Today, 11:15 AM</strong> - Mike Davis used "change loan amount" - Failed (Low confidence)
+                        </div>
+                        <div style="padding: 12px; border-bottom: 1px solid #f1f1f1; font-size: 14px; color: #666;">
+                            <strong>Yesterday, 4:30 PM</strong> - Lisa Chen used "update loan amount" - Success
+                        </div>
+                        <div style="padding: 12px; font-size: 14px; color: #666;">
+                            <strong>Yesterday, 3:15 PM</strong> - Tom Wilson used "loan amount" - Success
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                const targetTab = this.getAttribute('data-tab');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // Multi-input functionality
+        document.addEventListener('click', function(event) {
+            if (event.target.matches('.remove-btn')) {
+                event.target.parentElement.remove();
+            }
+            
+            if (event.target.matches('.add-btn')) {
+                const multiInput = event.target.previousElementSibling;
+                const newItem = document.createElement('div');
+                newItem.className = 'multi-input-item';
+                newItem.innerHTML = `
+                    <input type="text" class="form-control" placeholder="Enter ${event.target.textContent.includes('Phrase') ? 'trigger phrase' : 'value'}">
+                    <button class="remove-btn">Remove</button>
+                `;
+                multiInput.appendChild(newItem);
+            }
+        });
+
+        // Form validation
+        function validateForm() {
+            const requiredFields = document.querySelectorAll('input[required], textarea[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#e74c3c';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#ddd';
+                }
+            });
+            
+            return isValid;
+        }
+
+        // Save functionality
+        document.querySelector('.btn-success').addEventListener('click', function() {
+            if (validateForm()) {
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message';
+                successDiv.textContent = 'Voice command saved successfully!';
+                document.querySelector('.container').insertBefore(successDiv, document.querySelector('.tabs'));
+                
+                setTimeout(() => successDiv.remove(), 3000);
+            } else {
+                // Show validation error
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'validation-error';
+                errorDiv.textContent = 'Please fill in all required fields before saving.';
+                document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.tabs'));
+                
+                setTimeout(() => errorDiv.remove(), 3000);
+            }
+        });
+    </script>
+</body>
+</html>
