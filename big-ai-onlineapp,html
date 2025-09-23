@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIG AI Mortgage Application - Conversational URLA 1003</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: var(--white);
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: var(--white);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Main Container */
+        .app-container {
+            display: none;
+            min-height: 100vh;
+            background: #f9fafb;
+        }
+
+        .app-container.active {
+            display: block;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: var(--white);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: 1px solid #e5e7eb;
+            background: var(--white);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: var(--light);
+            transform: translateY(-2px);
+        }
+
+        /* Main Layout Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 400px;
+            height: calc(100vh - 70px);
+        }
+
+        /* Sections Sidebar */
+        .sections-sidebar {
+            background: var(--white);
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .sections-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-indicator {
+            background: var(--light);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .section-card {
+            background: var(--white);
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-card:hover {
+            border-color: var(--primary-light);
+            transform: translateX(5px);
+        }
+
+        .section-card.active {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-color: var(--primary);
+        }
+
+        .section-card.completed {
+            border-color: var(--secondary);
+        }
+
+        .section-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            background: var(--light);
+        }
+
+        .section-card.active .section-icon {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .section-card.completed .section-icon {
+            background: var(--secondary);
+            color: var(--white);
+        }
+
+        .section-details {
+            flex: 1;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 3px;
+        }
+
+        .section-status {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* Chat Area */
+        .chat-area {
+            background: #fafbfc;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* AI Avatar */
+        .ai-avatar-container {
+            background: var(--white);
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .ai-avatar-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .ai-avatar-video {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-avatar-video.speaking {
+            animation: avatarSpeak 0.5s ease-in-out infinite;
+        }
+
+        @keyframes avatarSpeak {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .avatar-emoji {
+            font-size: 3rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .avatar-face {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .avatar-eyes {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .avatar-eye {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            animation: blink 4s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        
+        .avatar-mouth {
+            width: 30px;
+            height: 15px;
+            border: 3px solid white;
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+            animation: talk 0.3s infinite alternate;
+        }
+        
+        .avatar-mouth.talking {
+            animation: talk 0.3s infinite alternate;
+        }
+        
+        @keyframes talk {
+            0% { height: 15px; }
+            100% { height: 20px; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .voice-waves {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3px;
+        }
+
+        .voice-wave {
+            width: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .voice-wave:nth-child(1) { height: 20px; animation-delay: 0s; }
+        .voice-wave:nth-child(2) { height: 30px; animation-delay: 0.1s; }
+        .voice-wave:nth-child(3) { height: 25px; animation-delay: 0.2s; }
+        .voice-wave:nth-child(4) { height: 30px; animation-delay: 0.3s; }
+        .voice-wave:nth-child(5) { height: 20px; animation-delay: 0.4s; }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+
+        .ai-info {
+            flex: 1;
+        }
+
+        .ai-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .ai-status {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .voice-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .voice-btn:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .voice-btn.active {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: var(--white);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Messages Container */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.ai {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .message.ai .message-bubble {
+            background: var(--white);
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.user .message-bubble {
+            background: var(--primary);
+            color: var(--white);
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-text {
+            line-height: 1.5;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        /* Question Options */
+        .question-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .option-btn {
+            padding: 10px 20px;
+            background: var(--white);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            background: var(--primary);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* Input Area */
+        .input-area {
+            background: var(--white);
+            border-top: 1px solid #e5e7eb;
+            padding: 20px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 30px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quick-action {
+            padding: 6px 14px;
+            background: var(--light);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: var(--white);
+            border-left: 1px solid #e5e7eb;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .panel-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .panel-tab.active {
+            color: var(--primary);
+        }
+
+        .panel-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tools Grid */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .tool-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .tool-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .tool-description {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* Summary Section */
+        .summary-section {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-header {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edit-btn {
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .summary-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .summary-value {
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        /* Guidelines Reference */
+        .guidelines-card {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .guideline-header {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .guideline-content {
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .guideline-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Modal Base */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .message-bubble.urgent {
+            border: 2px solid var(--accent);
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+        }
+        
+        .reminder-badge {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: var(--accent);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+            animation: bounce 2s infinite;
+            z-index: 100;
+            cursor: pointer;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 250px 1fr;
+            }
+            
+            .right-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sections-sidebar {
+                display: none;
+            }
+            
+            .ai-avatar-wrapper {
+                width: 80px;
+                height: 80px;
+            }
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 15px 20px;
+            background: var(--white);
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            width: fit-content;
+            margin-bottom: 20px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gray);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Initializing BIG AI Assistant...</h2>
+            <p>Powered by BIG AI Bedrock</p>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div class="app-container" id="appContainer">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="logo-section">
+                <div class="logo">BIG AI Mortgage</div>
+                <div class="status-badge">🟢 AI Active</div>
+            </div>
+            <div class="top-actions">
+                <button class="action-btn" onclick="saveProgress()">
+                    💾 Save Progress
+                </button>
+                <button class="action-btn" onclick="showHelp()">
+                    ❓ Help
+                </button>
+                <button class="action-btn" onclick="showSettings()">
+                    ⚙️ Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Grid Layout -->
+        <div class="main-grid">
+            <!-- Sections Sidebar (URLA Structure) -->
+            <div class="sections-sidebar">
+                <div class="sections-header">
+                    <span>Application Sections</span>
+                    <span class="progress-indicator" id="progressIndicator">0%</span>
+                </div>
+                <div id="sectionsContainer">
+                    <!-- Sections will be dynamically generated -->
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="chat-area">
+                <!-- AI Avatar Section -->
+                <div class="ai-avatar-container">
+                    <div class="ai-avatar-wrapper">
+                        <div class="ai-avatar-video" id="aiAvatar">
+                            <div class="avatar-face">
+                                <div class="avatar-eyes">
+                                    <div class="avatar-eye"></div>
+                                    <div class="avatar-eye"></div>
+                                </div>
+                                <div class="avatar-mouth" id="avatarMouth"></div>
+                            </div>
+                            <div class="voice-waves" id="voiceWaves" style="display: none;">
+                                <div class="voice-wave"></div>
+                                <div class="voice-wave"></div>
+                                <div class="voice-wave"></div>
+                                <div class="voice-wave"></div>
+                                <div class="voice-wave"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-info">
+                        <div class="ai-name">Alex - Your Personal Mortgage Guide</div>
+                        <div class="ai-status" id="aiStatus">Ready to help you get your dream home! 🏡</div>
+                    </div>
+                    <div class="voice-controls">
+                        <button class="voice-btn" id="voiceToggle" onclick="toggleVoice()" title="Enable Voice">
+                            🎤
+                        </button>
+                        <button class="voice-btn" onclick="toggleAvatar()" title="Toggle Avatar">
+                            🎥
+                        </button>
+                        <button class="voice-btn" onclick="changeVoiceSpeed()" title="Voice Speed">
+                            ⚡
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages Container -->
+                <div class="messages-container" id="messagesContainer">
+                    <!-- Messages will appear here -->
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-area">
+                    <div class="input-container">
+                        <button class="voice-btn" id="micBtn" onclick="startVoiceInput()">
+                            🎤
+                        </button>
+                        <input type="text" class="input-field" id="userInput" 
+                               placeholder="Type your answer or say 'Hey Sophie'...">
+                        <button class="send-btn" onclick="sendMessage()">
+                            ➤
+                        </button>
+                    </div>
+                    <div class="quick-actions">
+                        <div class="quick-action" onclick="askForHelp()">Need help?</div>
+                        <div class="quick-action" onclick="skipQuestion()">Skip for now</div>
+                        <div class="quick-action" onclick="goBack()">Previous question</div>
+                        <div class="quick-action" onclick="pauseApplication()">Take a break</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- Panel Tabs -->
+                <div class="panel-tabs">
+                    <button class="panel-tab active" onclick="switchTab('tools')">Tools</button>
+                    <button class="panel-tab" onclick="switchTab('summary')">Summary</button>
+                    <button class="panel-tab" onclick="switchTab('guidelines')">Guidelines</button>
+                </div>
+
+                <!-- Tools Tab -->
+                <div class="tab-content active" id="toolsTab">
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="openCalculator('payment')">
+                            <div class="tool-icon">💰</div>
+                            <div class="tool-name">Payment Calc</div>
+                            <div class="tool-description">Calculate monthly payment</div>
+                        </div>
+                        <div class="tool-card" onclick="openCalculator('income')">
+                            <div class="tool-icon">💵</div>
+                            <div class="tool-name">Income Calc</div>
+                            <div class="tool-description">Calculate qualifying income</div>
+                        </div>
+                        <div class="tool-card" onclick="openCalculator('dti')">
+                            <div class="tool-icon">📊</div>
+                            <div class="tool-name">DTI Calc</div>
+                            <div class="tool-description">Debt-to-income ratio</div>
+                        </div>
+                        <div class="tool-card" onclick="openCalculator('affordability')">
+                            <div class="tool-icon">🏠</div>
+                            <div class="tool-name">Affordability</div>
+                            <div class="tool-description">How much can I afford?</div>
+                        </div>
+                        <div class="tool-card" onclick="showDocuments()">
+                            <div class="tool-icon">📄</div>
+                            <div class="tool-name">Documents</div>
+                            <div class="tool-description">Required documents</div>
+                        </div>
+                        <div class="tool-card" onclick="askAI()">
+                            <div class="tool-icon">🤖</div>
+                            <div class="tool-name">Ask AI</div>
+                            <div class="tool-description">Get instant answers</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Tab -->
+                <div class="tab-content" id="summaryTab">
+                    <div id="summaryContent">
+                        <!-- Summary will be dynamically generated -->
+                    </div>
+                </div>
+
+                <!-- Guidelines Tab -->
+                <div class="tab-content" id="guidelinesTab">
+                    <div class="guidelines-card">
+                        <div class="guideline-header">
+                            📋 Fannie Mae / Freddie Mac
+                        </div>
+                        <div class="guideline-content">
+                            • Minimum down: 3-5%<br>
+                            • Credit score: 620+<br>
+                            • Max DTI: 45-50%<br>
+                            <a href="#" class="guideline-link">View full guidelines →</a>
+                        </div>
+                    </div>
+                    <div class="guidelines-card">
+                        <div class="guideline-header">
+                            🏠 FHA Guidelines
+                        </div>
+                        <div class="guideline-content">
+                            • Minimum down: 3.5%<br>
+                            • Credit score: 580+<br>
+                            • Max DTI: 43-57%<br>
+                            <a href="#" class="guideline-link">View full guidelines →</a>
+                        </div>
+                    </div>
+                    <div class="guidelines-card">
+                        <div class="guideline-header">
+                            🎖️ VA Guidelines
+                        </div>
+                        <div class="guideline-content">
+                            • No down payment required<br>
+                            • No minimum credit score<br>
+                            • Residual income based<br>
+                            <a href="#" class="guideline-link">View full guidelines →</a>
+                        </div>
+                    </div>
+                    <div class="guidelines-card">
+                        <div class="guideline-header">
+                            🌾 USDA Guidelines
+                        </div>
+                        <div class="guideline-content">
+                            • No down payment required<br>
+                            • Credit score: 640+<br>
+                            • Max DTI: 41%<br>
+                            <a href="#" class="guideline-link">View full guidelines →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URLA 1003 Sections Structure (Based on Official Form)
+        const urlaSections = [
+            {
+                id: 'borrower_info',
+                number: '1',
+                title: 'Borrower Information',
+                icon: '👤',
+                status: 'pending',
+                questions: [
+                    { id: 'name', text: "Let's start with your name. What's your full legal name?", type: 'text', field: '4000,4001,4002' },
+                    { id: 'ssn', text: "What's your Social Security Number?", type: 'ssn', field: '65' },
+                    { id: 'dob', text: "What's your date of birth?", type: 'date', field: '1402' },
+                    { id: 'citizenship', text: "What's your citizenship status?", type: 'select', options: ['US Citizen', 'Permanent Resident', 'Non-Permanent Resident'], field: 'URLA.X1' },
+                    { id: 'marital', text: "What's your marital status?", type: 'select', options: ['Single', 'Married', 'Separated', 'Divorced', 'Widowed'], field: '52' },
+                    { id: 'dependents', text: "Do you have any dependents?", type: 'boolean', field: '53' },
+                    { id: 'phone', text: "What's your phone number?", type: 'phone', field: '66' },
+                    { id: 'email', text: "What's your email address?", type: 'email', field: '1240' },
+                    { id: 'current_address', text: "What's your current address?", type: 'address', field: 'FR0106' }
+                ]
+            },
+            {
+                id: 'financial_info',
+                number: '2',
+                title: 'Financial Information',
+                icon: '💰',
+                status: 'pending',
+                questions: [
+                    { id: 'assets', text: "Let's talk about your assets. Do you have any bank accounts?", type: 'boolean' },
+                    { id: 'checking', text: "What's your checking account balance?", type: 'currency', field: 'DD0148' },
+                    { id: 'savings', text: "What's your savings account balance?", type: 'currency', field: 'DD0248' },
+                    { id: 'retirement', text: "Do you have retirement accounts (401k, IRA)?", type: 'boolean' },
+                    { id: 'investments', text: "Do you have stocks, bonds, or other investments?", type: 'boolean' },
+                    { id: 'liabilities', text: "Now let's discuss your monthly debts. Do you have any car payments?", type: 'boolean' },
+                    { id: 'car_payment', text: "What's your monthly car payment?", type: 'currency' },
+                    { id: 'credit_cards', text: "What's your total minimum monthly credit card payment?", type: 'currency' },
+                    { id: 'student_loans', text: "Do you have student loan payments?", type: 'currency' },
+                    { id: 'other_debts', text: "Any other monthly debt payments?", type: 'currency' }
+                ]
+            },
+            {
+                id: 'property_loan',
+                number: '3',
+                title: 'Property Information & Purpose',
+                icon: '🏠',
+                status: 'pending',
+                questions: [
+                    { id: 'loan_purpose', text: "Are you looking to purchase a home or refinance?", type: 'select', options: ['Purchase', 'Refinance', 'Cash-Out Refinance'], field: '19' },
+                    { id: 'property_use', text: "How will you use this property?", type: 'select', options: ['Primary Residence', 'Second Home', 'Investment Property'], field: '1811' },
+                    { id: 'property_type', text: "What type of property?", type: 'select', options: ['Single Family', 'Condo', 'Townhouse', '2-4 Unit'], field: '1041' },
+                    { id: 'purchase_price', text: "What's the purchase price?", type: 'currency', field: '136' },
+                    { id: 'down_payment', text: "How much are you putting down?", type: 'currency', field: '1335' },
+                    { id: 'property_address', text: "What's the property address?", type: 'address', field: '11' },
+                    { id: 'loan_amount', text: "What loan amount are you requesting?", type: 'currency', field: '1109' }
+                ]
+            },
+            {
+                id: 'employment',
+                number: '4',
+                title: 'Employment Information',
+                icon: '💼',
+                status: 'pending',
+                questions: [
+                    { id: 'employed', text: "Are you currently employed?", type: 'boolean', field: 'URLA.x199' },
+                    { id: 'employer', text: "Who is your employer?", type: 'text', field: 'FE0102' },
+                    { id: 'job_title', text: "What's your job title?", type: 'text', field: 'FE0110' },
+                    { id: 'employment_type', text: "Are you W-2 or self-employed?", type: 'select', options: ['W-2 Employee', 'Self-Employed', '1099 Contractor'], field: 'FE0115' },
+                    { id: 'years_employed', text: "How long have you been with this employer?", type: 'text' },
+                    { id: 'income', text: "What's your annual gross income?", type: 'currency', field: 'FE0119' },
+                    { id: 'bonus', text: "Do you receive bonuses or commissions?", type: 'boolean' },
+                    { id: 'other_income', text: "Do you have any other sources of income?", type: 'boolean' }
+                ]
+            },
+            {
+                id: 'declarations',
+                number: '5',
+                title: 'Declarations',
+                icon: '📋',
+                status: 'pending',
+                questions: [
+                    { id: 'primary_residence', text: "Will you occupy this property as your primary residence?", type: 'boolean', field: '418' },
+                    { id: 'first_time', text: "Are you a first-time homebuyer?", type: 'boolean' },
+                    { id: 'ownership_interest', text: "Have you owned property in the last 3 years?", type: 'boolean', field: '403' },
+                    { id: 'bankruptcy', text: "Have you declared bankruptcy in the last 7 years?", type: 'boolean', field: '265' },
+                    { id: 'foreclosure', text: "Have you had a foreclosure in the last 7 years?", type: 'boolean', field: 'URLA.X106' },
+                    { id: 'lawsuit', text: "Are you party to any lawsuits?", type: 'boolean', field: 'URLA.X100' },
+                    { id: 'delinquent', text: "Are you delinquent on any federal debt?", type: 'boolean', field: 'URLA.X98' },
+                    { id: 'alimony', text: "Do you pay alimony or child support?", type: 'boolean' }
+                ]
+            },
+            {
+                id: 'acknowledgments',
+                number: '6',
+                title: 'Acknowledgments & Agreements',
+                icon: '✅',
+                status: 'pending',
+                questions: [
+                    { id: 'information_true', text: "Do you acknowledge that all information provided is true and accurate?", type: 'boolean' },
+                    { id: 'property_use_agree', text: "Do you agree to use the property as stated in this application?", type: 'boolean' },
+                    { id: 'credit_auth', text: "Do you authorize us to check your credit?", type: 'boolean', field: '4073' },
+                    { id: 'econsent', text: "Do you consent to receive documents electronically?", type: 'boolean' }
+                ]
+            },
+            {
+                id: 'military',
+                number: '7',
+                title: 'Military Service',
+                icon: '🎖️',
+                status: 'pending',
+                questions: [
+                    { id: 'military_service', text: "Have you or your spouse served in the military?", type: 'boolean', field: 'URLA.X13' },
+                    { id: 'service_branch', text: "Which branch of service?", type: 'select', options: ['Army', 'Navy', 'Air Force', 'Marines', 'Coast Guard', 'Space Force'] },
+                    { id: 'active_duty', text: "Are you currently on active duty?", type: 'boolean' },
+                    { id: 'va_benefits', text: "Are you eligible for VA benefits?", type: 'boolean' }
+                ]
+            },
+            {
+                id: 'demographics',
+                number: '8',
+                title: 'Demographic Information',
+                icon: '📊',
+                status: 'pending',
+                questions: [
+                    { id: 'ethnicity', text: "The government requires us to ask about ethnicity. You may choose not to provide this.", type: 'select', options: ['Hispanic or Latino', 'Not Hispanic or Latino', 'Prefer not to answer'] },
+                    { id: 'race', text: "What is your race? (You may select multiple or prefer not to answer)", type: 'multiselect', options: ['American Indian', 'Asian', 'Black', 'Pacific Islander', 'White', 'Prefer not to answer'] },
+                    { id: 'sex', text: "What is your sex?", type: 'select', options: ['Female', 'Male', 'Prefer not to answer'] }
+                ]
+            },
+            {
+                id: 'loan_originator',
+                number: '9',
+                title: 'Loan Originator Info',
+                icon: '👔',
+                status: 'pending',
+                questions: [
+                    { id: 'lo_assigned', text: "A loan officer will be assigned to help you. Would you like to choose one?", type: 'boolean' },
+                    { id: 'lo_preference', text: "Do you have any preference for your loan officer?", type: 'text' }
+                ]
+            }
+        ];
+
+        // Application State
+        let appState = {
+            currentSection: 0,
+            currentQuestion: 0,
+            responses: {},
+            voiceEnabled: false,
+            avatarEnabled: true,
+            speechRate: 1,
+            isListening: false,
+            conversation: [],
+            lastInteraction: Date.now(),
+            distractionCount: 0,
+            questionsAsked: 0,
+            reminderInterval: null
+        };
+
+        // Proactive Engagement System
+        function startProactiveEngagement() {
+            // Check every 30 seconds if user needs nudging
+            appState.reminderInterval = setInterval(() => {
+                const timeSinceLastInteraction = Date.now() - appState.lastInteraction;
+                
+                // If user hasn't interacted for 45 seconds
+                if (timeSinceLastInteraction > 45000 && timeSinceLastInteraction < 60000) {
+                    const reminders = [
+                        "Hey there! I'm still here to help. Did you have a question about this part? Remember, you can ask me about payment calculations or anything else!",
+                        "I notice you might be thinking about this question. Would you like me to explain it differently? Or maybe you want to calculate what your payments might be?",
+                        "Taking your time is totally fine! While you're thinking, did you know I can help calculate your estimated payments or explain any mortgage terms?",
+                        "Still with me? If this question is confusing, just say 'help' and I'll explain it better. Or ask me anything about the mortgage process!"
+                    ];
+                    const reminder = reminders[Math.floor(Math.random() * reminders.length)];
+                    addAIMessage(reminder, false);
+                }
+                
+                // If user hasn't interacted for 90 seconds
+                if (timeSinceLastInteraction > 90000 && timeSinceLastInteraction < 100000) {
+                    appState.distractionCount++;
+                    addAIMessage("⏰ Hey! Let's get back to your application. We're making great progress and I don't want you to lose momentum. This question is important for your loan approval. Need help answering it?", true);
+                    if (appState.voiceEnabled) {
+                        speak("Hey! Let's get back to your application. Do you need help with this question?");
+                    }
+                }
+                
+                // If user hasn't interacted for 2 minutes
+                if (timeSinceLastInteraction > 120000) {
+                    addAIMessage("🎯 I really need this information to move forward with your application. Let me make this easier - would you prefer to: \n1) Answer this question now\n2) Skip it and come back later\n3) Take a break and save your progress\n4) Ask me to explain what this means", true);
+                    showQuestionOptions(['Answer now', 'Skip for later', 'Take a break', 'Explain this to me']);
+                    appState.lastInteraction = Date.now(); // Reset to avoid spam
+                }
+            }, 30000);
+        }
+
+        // Track user interaction
+        function trackInteraction() {
+            appState.lastInteraction = Date.now();
+            appState.distractionCount = Math.max(0, appState.distractionCount - 1);
+        }
+
+        // Speech Synthesis Setup
+        let synth = window.speechSynthesis;
+        let voices = [];
+        let currentVoice = null;
+
+        // Speech Recognition Setup
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = function(event) {
+                let final_transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        final_transcript += event.results[i][0].transcript;
+                    }
+                }
+                if (final_transcript) {
+                    document.getElementById('userInput').value = final_transcript;
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event.error);
+                stopListening();
+            };
+        }
+
+        // Initialize Application
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').style.display = 'none';
+                    document.getElementById('appContainer').classList.add('active');
+                    initializeApp();
+                }, 500);
+            }, 2000);
+        };
+
+        function initializeApp() {
+            loadVoices();
+            renderSections();
+            startConversation();
+            setupEventListeners();
+        }
+
+        // Load Available Voices
+        function loadVoices() {
+            voices = synth.getVoices();
+            if (voices.length === 0) {
+                // Some browsers load voices asynchronously
+                synth.onvoiceschanged = function() {
+                    voices = synth.getVoices();
+                    selectBestVoice();
+                };
+            } else {
+                selectBestVoice();
+            }
+        }
+
+        function selectBestVoice() {
+            // Try to find a female English voice for Sophie
+            currentVoice = voices.find(voice => voice.name.includes('Female') && voice.lang.includes('en')) ||
+                          voices.find(voice => voice.name.includes('Samantha')) ||
+                          voices.find(voice => voice.lang.includes('en-US')) ||
+                          voices[0];
+        }
+
+        // Render Sections Sidebar
+        function renderSections() {
+            const container = document.getElementById('sectionsContainer');
+            container.innerHTML = '';
+            
+            urlaSections.forEach((section, index) => {
+                const card = document.createElement('div');
+                card.className = `section-card ${index === appState.currentSection ? 'active' : ''} ${section.status === 'completed' ? 'completed' : ''}`;
+                card.innerHTML = `
+                    <div class="section-icon">${section.status === 'completed' ? '✓' : section.icon}</div>
+                    <div class="section-details">
+                        <div class="section-title">Section ${section.number}</div>
+                        <div class="section-status">${section.title}</div>
+                    </div>
+                `;
+                card.onclick = () => navigateToSection(index);
+                container.appendChild(card);
+            });
+            
+            updateProgress();
+        }
+
+        // Navigate to Section
+        function navigateToSection(sectionIndex) {
+            if (sectionIndex < appState.currentSection || confirm('Skip to this section? You may need to complete skipped questions later.')) {
+                appState.currentSection = sectionIndex;
+                appState.currentQuestion = 0;
+                renderSections();
+                askCurrentQuestion();
+            }
+        }
+
+        // Update Progress
+        function updateProgress() {
+            const completedSections = urlaSections.filter(s => s.status === 'completed').length;
+            const progress = Math.round((completedSections / urlaSections.length) * 100);
+            document.getElementById('progressIndicator').textContent = `${progress}%`;
+        }
+
+        // Start Conversation
+        function startConversation() {
+            const welcomeMessage = "Hi! I'm Alex, your personal mortgage guide! 👋 I'm here to make getting your home loan as easy as possible. I'll walk you through everything step-by-step, and here's the best part - you can ask me ANYTHING along the way! Want to know what your payment might be? Curious about down payment options? Just ask! I can calculate payments, explain terms, or clarify any confusing parts. This usually takes about 15-20 minutes. Ready to get your dream home?";
+            addAIMessage(welcomeMessage);
+            if (appState.voiceEnabled) {
+                speak(welcomeMessage);
+            }
+            
+            // Show initial options
+            showQuestionOptions(['Yes, let\'s do this!', 'Tell me more first', 'What can you help with?', 'I\'m nervous about this']);
+            
+            // Start proactive engagement monitoring
+            startProactiveEngagement();
+            
+            // Set periodic helpful reminders
+            setTimeout(() => {
+                if (appState.questionsAsked < 3) {
+                    addAIMessage("💡 Quick tip: You can ask me to calculate your estimated monthly payment at any time - just say 'calculate payment' or click the calculator on the right!", false);
+                }
+            }, 60000);
+        }
+
+        // Ask Current Question with helpful reminders
+        function askCurrentQuestion() {
+            const section = urlaSections[appState.currentSection];
+            const question = section.questions[appState.currentQuestion];
+            
+            if (!question) {
+                // Section complete
+                completeSection();
+                return;
+            }
+            
+            // Track questions asked
+            appState.questionsAsked++;
+            
+            // Main question
+            addAIMessage(question.text);
+            
+            // Add helpful context every few questions
+            if (appState.questionsAsked % 4 === 0) {
+                setTimeout(() => {
+                    const helpfulTips = [
+                        "📱 Remember: You can use voice commands by clicking the microphone button!",
+                        "💰 Need to know your payment? Just ask me to calculate it anytime!",
+                        "❓ Confused about any term? Just ask me what it means!",
+                        "⏸️ Need a break? Just say 'pause' and we'll save your progress!",
+                        "🔢 Want to see if you qualify? Ask me to calculate your debt-to-income ratio!"
+                    ];
+                    const tip = helpfulTips[Math.floor(Math.random() * helpfulTips.length)];
+                    addAIMessage(tip, false);
+                }, 2000);
+            }
+            
+            if (appState.voiceEnabled) {
+                speak(question.text);
+            }
+            
+            // Show appropriate input options based on question type
+            if (question.type === 'boolean') {
+                showQuestionOptions(['Yes', 'No', 'I\'m not sure', 'What does this mean?']);
+            } else if (question.type === 'select' && question.options) {
+                const optionsWithHelp = [...question.options, 'Help me choose'];
+                showQuestionOptions(optionsWithHelp);
+            }
+            
+            updateCurrentSummary();
+            trackInteraction();
+        }
+
+        // Add AI Message with urgency option
+        function addAIMessage(text, urgent = false) {
+            const container = document.getElementById('messagesContainer');
+            
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            container.appendChild(typingDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            // Animate avatar mouth when talking
+            const mouth = document.getElementById('avatarMouth');
+            if (mouth) {
+                mouth.classList.add('talking');
+            }
+            
+            // Show actual message after delay
+            const delay = urgent ? 500 : 1000;
+            setTimeout(() => {
+                typingDiv.remove();
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ai';
+                messageDiv.innerHTML = `
+                    <div class="message-bubble${urgent ? ' urgent' : ''}">
+                        <div class="message-text">${text}</div>
+                        <div class="message-time">${getCurrentTime()}</div>
+                    </div>
+                `;
+                container.appendChild(messageDiv);
+                container.scrollTop = container.scrollHeight;
+                
+                // Stop mouth animation
+                if (mouth) {
+                    mouth.classList.remove('talking');
+                }
+                
+                // Add to conversation history
+                appState.conversation.push({
+                    type: 'ai',
+                    text: text,
+                    timestamp: new Date()
+                });
+            }, delay);
+        }
+
+        // Add User Message
+        function addUserMessage(text) {
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            messageDiv.innerHTML = `
+                <div class="message-bubble">
+                    <div class="message-text">${text}</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                </div>
+            `;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            // Add to conversation history
+            appState.conversation.push({
+                type: 'user',
+                text: text,
+                timestamp: new Date()
+            });
+        }
+
+        // Show Question Options
+        function showQuestionOptions(options) {
+            const container = document.getElementById('messagesContainer');
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'question-options';
+            
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.onclick = () => {
+                    addUserMessage(option);
+                    processResponse(option);
+                    optionsDiv.remove();
+                };
+                optionsDiv.appendChild(btn);
+            });
+            
+            container.appendChild(optionsDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Process User Response with engagement tracking
+        function processResponse(response) {
+            trackInteraction();
+            const section = urlaSections[appState.currentSection];
+            const question = section.questions[appState.currentQuestion];
+            
+            // Check if user is asking for help or getting distracted
+            const lowerResponse = response.toLowerCase();
+            
+            if (lowerResponse.includes('what does this mean') || lowerResponse.includes('help me choose') || lowerResponse.includes('i\'m not sure')) {
+                // Provide help but remind them to answer
+                handleHelpRequest(question);
+                return;
+            }
+            
+            if (lowerResponse.includes('calculate') || lowerResponse.includes('payment') || lowerResponse.includes('how much')) {
+                // Handle calculation request but keep them on track
+                handleCalculationRequest();
+                addAIMessage("I've opened the calculator for you! Once you're done, let's get back to this question - " + question.text, true);
+                return;
+            }
+            
+            // Save response
+            if (question) {
+                appState.responses[`${section.id}_${question.id}`] = response;
+                
+                // Validate response
+                if (!validateResponse(response, question.type)) {
+                    addAIMessage("Hmm, that doesn't look quite right. " + getValidationHelp(question.type) + " Let's try again - this is important for your application!", true);
+                    return;
+                }
+            }
+            
+            // Move to next question
+            appState.currentQuestion++;
+            
+            // Add encouraging but focused response
+            const contextualResponses = [
+                "Perfect! Let's keep this momentum going. ",
+                "Great answer! We're making excellent progress. ",
+                "Exactly what I needed! Moving right along... ",
+                "Fantastic! You're doing great. Next up: ",
+                "Got it! We're one step closer to your approval. "
+            ];
+            const randomResponse = contextualResponses[Math.floor(Math.random() * contextualResponses.length)];
+            
+            // If user has been distracted, be more assertive
+            if (appState.distractionCount > 0) {
+                addAIMessage("Good! See, that wasn't so hard! Let's keep going while we're on a roll. 💪", false);
+            }
+            
+            setTimeout(() => {
+                askCurrentQuestion();
+            }, 500);
+        }
+
+        // Handle help requests
+        function handleHelpRequest(question) {
+            const helpTexts = {
+                'ssn': "Your Social Security Number is required for credit checks. It's completely secure and encrypted. Format: 123-45-6789",
+                'income': "Enter your total annual income before taxes. Include salary, bonuses, and commissions. If self-employed, I can help calculate your qualifying income!",
+                'down_payment': "This is how much cash you'll put toward the purchase. Typically 3-20% of the home price. FHA allows as little as 3.5%!",
+                'property_use': "Primary Residence = where you'll live most of the time. Second Home = vacation property. Investment = rental property. This affects your interest rate!",
+                'citizenship': "Your citizenship status helps determine which loan programs you qualify for. All options can get mortgages!",
+                'employment_type': "W-2 = regular employee. Self-employed = you own a business. 1099 = independent contractor. Each has different income calculations."
+            };
+            
+            const help = helpTexts[question.id] || "This information helps determine your loan eligibility and terms.";
+            addAIMessage(help);
+            
+            setTimeout(() => {
+                addAIMessage("Now that you understand, please answer: " + question.text + " (I really need this to move forward!)", true);
+                if (question.type === 'boolean') {
+                    showQuestionOptions(['Yes', 'No']);
+                } else if (question.type === 'select' && question.options) {
+                    showQuestionOptions(question.options);
+                }
+            }, 2000);
+        }
+
+        // Handle calculation requests
+        function handleCalculationRequest() {
+            openCalculator('payment');
+            appState.distractionCount++;
+            
+            if (appState.distractionCount > 2) {
+                setTimeout(() => {
+                    addAIMessage("Hey, I love that you're interested in the numbers, but we need to finish gathering your information first! The more complete your application, the better rate you might get. Let's focus! 🎯", true);
+                }, 3000);
+            }
+        }
+
+        // Send Message with enhanced interaction
+        function sendMessage() {
+            trackInteraction();
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addUserMessage(message);
+                input.value = '';
+                
+                // Check for off-topic conversation
+                const lowerMessage = message.toLowerCase();
+                if (lowerMessage.includes('weather') || lowerMessage.includes('sports') || 
+                    lowerMessage.includes('news') || lowerMessage.includes('joke')) {
+                    addAIMessage("Ha! I appreciate the chat, but let's stay focused on getting you approved for this mortgage! We can celebrate with jokes after you get your dream home. 😊 Now, back to the question...", true);
+                    setTimeout(() => {
+                        const section = urlaSections[appState.currentSection];
+                        const question = section.questions[appState.currentQuestion];
+                        if (question) {
+                            addAIMessage(question.text, true);
+                        }
+                    }, 2000);
+                    return;
+                }
+                
+                // Process legitimate response
+                processResponse(message);
+            }
+        }
+
+        // Complete Section
+        function completeSection() {
+            const section = urlaSections[appState.currentSection];
+            section.status = 'completed';
+            
+            addAIMessage(`Great job! We've completed the ${section.title} section. Let's move on to the next part.`);
+            
+            appState.currentSection++;
+            appState.currentQuestion = 0;
+            
+            if (appState.currentSection < urlaSections.length) {
+                renderSections();
+                setTimeout(() => {
+                    const nextSection = urlaSections[appState.currentSection];
+                    addAIMessage(`Now we'll cover ${nextSection.title}. This section has ${nextSection.questions.length} questions.`);
+                    setTimeout(() => askCurrentQuestion(), 1000);
+                }, 1500);
+            } else {
+                completeApplication();
+            }
+        }
+
+        // Complete Application
+        function completeApplication() {
+            addAIMessage("🎉 Congratulations! You've completed your mortgage application!");
+            addAIMessage("I'm now analyzing your information and checking it against lending guidelines...");
+            
+            setTimeout(() => {
+                addAIMessage("Based on your information, here's what I found:\n\n" +
+                           "✅ Your debt-to-income ratio looks good\n" +
+                           "✅ You have sufficient assets for down payment and closing costs\n" +
+                           "✅ Your employment history meets requirements\n\n" +
+                           "Your application will now be reviewed by a loan officer who will contact you within 24 hours.\n\n" +
+                           "You'll receive an email with your Loan Estimate within 3 business days.");
+            }, 3000);
+        }
+
+        // Voice Functions
+        function toggleVoice() {
+            appState.voiceEnabled = !appState.voiceEnabled;
+            const btn = document.getElementById('voiceToggle');
+            
+            if (appState.voiceEnabled) {
+                btn.style.background = 'var(--primary)';
+                btn.style.color = 'white';
+                speak("Voice assistance enabled. I'll read questions aloud for you.");
+            } else {
+                btn.style.background = 'white';
+                btn.style.color = 'var(--primary)';
+            }
+        }
+
+        function speak(text) {
+            if (!appState.voiceEnabled || !synth) return;
+            
+            // Cancel any ongoing speech
+            synth.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.voice = currentVoice;
+            utterance.rate = appState.speechRate;
+            utterance.pitch = 1.1;
+            
+            utterance.onstart = () => {
+                document.getElementById('aiAvatar').classList.add('speaking');
+                document.getElementById('voiceWaves').style.display = 'flex';
+            };
+            
+            utterance.onend = () => {
+                document.getElementById('aiAvatar').classList.remove('speaking');
+                document.getElementById('voiceWaves').style.display = 'none';
+            };
+            
+            synth.speak(utterance);
+        }
+
+        function startVoiceInput() {
+            if (!recognition) {
+                alert('Voice input is not supported in your browser. Please use Chrome or Edge.');
+                return;
+            }
+            
+            const micBtn = document.getElementById('micBtn');
+            
+            if (appState.isListening) {
+                stopListening();
+            } else {
+                recognition.start();
+                appState.isListening = true;
+                micBtn.classList.add('active');
+                document.getElementById('aiStatus').textContent = 'Listening...';
+            }
+        }
+
+        function stopListening() {
+            if (recognition && appState.isListening) {
+                recognition.stop();
+                appState.isListening = false;
+                document.getElementById('micBtn').classList.remove('active');
+                document.getElementById('aiStatus').textContent = 'Ready to help you with your application';
+            }
+        }
+
+        // Calculator Functions
+        function openCalculator(type) {
+            // Implementation would open calculator modal
+            addAIMessage(`Opening ${type} calculator for you...`);
+            // Calculator implementation here
+        }
+
+        // Helper Functions
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+        }
+
+        function validateResponse(response, type) {
+            switch(type) {
+                case 'email':
+                    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(response);
+                case 'phone':
+                    return /^[\d\s\-\(\)]+$/.test(response) && response.replace(/\D/g, '').length >= 10;
+                case 'ssn':
+                    return /^\d{3}-?\d{2}-?\d{4}$/.test(response);
+                case 'currency':
+                    return /^\$?[\d,]+\.?\d*$/.test(response);
+                case 'date':
+                    return /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(response);
+                default:
+                    return response.length > 0;
+            }
+        }
+
+        function getValidationHelp(type) {
+            const helps = {
+                'email': 'Please provide a valid email address (e.g., john@example.com)',
+                'phone': 'Please provide a valid phone number (e.g., 555-123-4567)',
+                'ssn': 'Please provide your SSN in format: 123-45-6789',
+                'currency': 'Please enter an amount (e.g., $50,000)',
+                'date': 'Please enter date in MM/DD/YYYY format'
+            };
+            return helps[type] || 'Please provide a valid response.';
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.panel-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'summary') {
+                updateCurrentSummary();
+            }
+        }
+
+        function updateCurrentSummary() {
+            const summaryContent = document.getElementById('summaryContent');
+            let html = '';
+            
+            urlaSections.forEach(section => {
+                if (section.status === 'completed' || section === urlaSections[appState.currentSection]) {
+                    html += `
+                        <div class="summary-section">
+                            <div class="summary-header">
+                                <span>${section.title}</span>
+                                <span class="edit-btn" onclick="editSection('${section.id}')">Edit</span>
+                            </div>
+                    `;
+                    
+                    section.questions.forEach(question => {
+                        const responseKey = `${section.id}_${question.id}`;
+                        if (appState.responses[responseKey]) {
+                            html += `
+                                <div class="summary-item">
+                                    <span class="summary-label">${question.id.replace(/_/g, ' ')}</span>
+                                    <span class="summary-value">${appState.responses[responseKey]}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    html += '</div>';
+                }
+            });
+            
+            summaryContent.innerHTML = html || '<p style="color: #6b7280; text-align: center;">No information collected yet</p>';
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            document.getElementById('userInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
+        // Quick Action Functions
+        function askForHelp() {
+            addAIMessage("I'm here to help! You can:\n• Ask me to explain any question\n• Use the calculators on the right\n• Say 'skip' to come back to a question later\n• Ask about loan programs and requirements\n\nWhat would you like help with?");
+        }
+
+        function skipQuestion() {
+            addAIMessage("No problem! We'll come back to this question later.");
+            appState.currentQuestion++;
+            askCurrentQuestion();
+        }
+
+        function goBack() {
+            if (appState.currentQuestion > 0) {
+                appState.currentQuestion--;
+                addAIMessage("Let's go back to the previous question.");
+                askCurrentQuestion();
+            } else if (appState.currentSection > 0) {
+                appState.currentSection--;
+                appState.currentQuestion = urlaSections[appState.currentSection].questions.length - 1;
+                renderSections();
+                askCurrentQuestion();
+            }
+        }
+
+        function pauseApplication() {
+            addAIMessage("Your progress has been saved! You can close this window and come back anytime. When you return, we'll pick up right where we left off. See you soon!");
+            saveProgress();
+        }
+
+        function saveProgress() {
+            localStorage.setItem('mortgageAppState', JSON.stringify(appState));
+            addAIMessage("✅ Your progress has been saved successfully!");
+        }
+
+        // Additional placeholder functions
+        function toggleAvatar() {
+            appState.avatarEnabled = !appState.avatarEnabled;
+            document.getElementById('aiAvatar').style.display = appState.avatarEnabled ? 'flex' : 'none';
+        }
+
+        function changeVoiceSpeed() {
+            appState.speechRate = appState.speechRate === 1 ? 1.2 : appState.speechRate === 1.2 ? 0.8 : 1;
+            addAIMessage(`Voice speed set to ${appState.speechRate === 1 ? 'normal' : appState.speechRate === 1.2 ? 'fast' : 'slow'}.`);
+        }
+
+        function showSettings() {
+            addAIMessage("Settings panel coming soon! You can adjust voice settings using the voice control buttons.");
+        }
+
+        function showHelp() {
+            addAIMessage("Here's how to use the application:\n\n" +
+                        "🎤 **Voice Commands**: Click the microphone to speak your answers\n" +
+                        "⌨️ **Type Responses**: Type in the input field and press Enter\n" +
+                        "📊 **Use Tools**: Access calculators and guidelines in the right panel\n" +
+                        "💾 **Save Progress**: Your application saves automatically\n" +
+                        "↩️ **Navigation**: Click sections on the left to jump around\n\n" +
+                        "Need specific help? Just ask me anything!");
+        }
+
+        function showDocuments() {
+            addAIMessage("Here are the documents you'll typically need:\n\n" +
+                        "📄 **Income Verification**:\n• Last 2 years W-2s\n• Recent pay stubs (30 days)\n• Tax returns (if self-employed)\n\n" +
+                        "🏦 **Asset Documentation**:\n• Bank statements (2 months)\n• Investment account statements\n• Gift letter (if applicable)\n\n" +
+                        "🏠 **Property Documents**:\n• Purchase agreement (if buying)\n• Homeowners insurance quote\n• HOA documents (if applicable)");
+        }
+
+        function askAI() {
+            addAIMessage("I can help you with any mortgage-related questions! What would you like to know?");
+        }
+
+        function editSection(sectionId) {
+            const sectionIndex = urlaSections.findIndex(s => s.id === sectionId);
+            navigateToSection(sectionIndex);
+        }
+    </script>
+</body>
+</html>
