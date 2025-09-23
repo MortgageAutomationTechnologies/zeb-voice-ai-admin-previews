@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Document Processing Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <style>
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css');
+        
+        .hidden { display: none !important; }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .scrollable-content {
+            overflow-y: auto;
+            max-height: 100%;
+        }
+        
+        .gradient-header {
+            background: linear-gradient(to right, #2563eb, #7c3aed);
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen p-4">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <header class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Enhanced Document Processing Interface</h1>
+                <p class="text-gray-600">Comprehensive mortgage document analysis with 1003 form integration</p>
+            </header>
+
+            <!-- Statistics Dashboard -->
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6" id="statsContainer">
+                <!-- Stats will be dynamically generated -->
+            </div>
+
+            <!-- Main Content -->
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <!-- Tab Navigation -->
+                <div class="border-b border-gray-200">
+                    <nav class="flex">
+                        <button class="tab-btn px-6 py-3 font-medium border-b-2 border-blue-500 text-blue-600" data-tab="queue">
+                            Document Queue
+                        </button>
+                        <button class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-gray-700" data-tab="global">
+                            Global Analysis
+                        </button>
+                        <button class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-gray-700" data-tab="tasks">
+                            Tasks
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="p-6">
+                    <!-- Document Queue Tab -->
+                    <div id="queue-tab" class="tab-content">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-semibold">Document Queue</h2>
+                            <div class="flex gap-2">
+                                <select id="statusFilter" class="border border-gray-300 rounded px-3 py-2">
+                                    <option value="all">All Documents</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="in_review">In Review</option>
+                                    <option value="incomplete">Incomplete</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="deleted">Deleted</option>
+                                    <option value="with_issues">With Issues</option>
+                                </select>
+                                <button id="clearFilter" class="hidden px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                                    Clear Filter
+                                </button>
+                            </div>
+                        </div>
+                        <div id="documentsContainer" class="grid gap-4">
+                            <!-- Documents will be dynamically generated -->
+                        </div>
+                    </div>
+
+                    <!-- Global Analysis Tab -->
+                    <div id="global-tab" class="tab-content hidden">
+                        <h2 class="text-xl font-semibold mb-4">Global Document Analysis</h2>
+                        <div class="grid gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h3 class="font-semibold mb-2">Cross-Document Issues</h3>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="text-red-600">⚠ Address inconsistency: Contract (125 Madison Ave), Application (175 13th St), License (456 Maple St)</li>
+                                    <li class="text-orange-600">⚠ Income variance: John YTD suggests higher annual income than reported</li>
+                                    <li class="text-red-600">⚠ Large deposit requires source documentation</li>
+                                </ul>
+                            </div>
+                            <div id="globalDocumentsContainer">
+                                <!-- Global documents will be dynamically generated -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Tab -->
+                    <div id="tasks-tab" class="tab-content hidden">
+                        <h2 class="text-xl font-semibold mb-4">Outstanding Tasks</h2>
+                        <div id="tasksContainer" class="space-y-3">
+                            <!-- Tasks will be dynamically generated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div id="pdfViewer" class="modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-6xl w-full mx-4 h-5/6 flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="pdfTitle" class="text-xl font-bold"></h3>
+                <button id="closePdfViewer" class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
+            </div>
+            
+            <div class="flex-1 flex overflow-hidden">
+                <div class="flex-1 p-4 bg-gray-100 overflow-hidden">
+                    <div class="bg-white border rounded-lg h-full flex flex-col">
+                        <div class="p-4 border-b bg-gray-50">
+                            <div class="text-center">
+                                <div class="text-4xl mb-2">📄</div>
+                                <p id="pdfDocName" class="text-lg font-semibold"></p>
+                                <p class="text-sm text-gray-500">Interactive PDF Preview</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 p-4 overflow-y-auto">
+                            <div id="pdfContent" class="space-y-4 text-sm">
+                                <!-- PDF content will be dynamically generated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="w-80 border-l bg-gray-50 p-4 overflow-auto">
+                    <h4 class="font-bold mb-3">Document Analysis</h4>
+                    <div id="pdfAnalysis">
+                        <!-- Analysis content will be dynamically generated -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG AI Assistant Modal -->
+    <div id="bigAIModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 h-5/6 flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b gradient-header text-white rounded-t-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <span class="text-xl">🤖</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold">BIG AI Assistant</h3>
+                        <p class="text-sm opacity-90">Professional Borrower Communication Generator</p>
+                    </div>
+                </div>
+                <button id="closeBigAI" class="text-white hover:text-gray-200 text-2xl">✕</button>
+            </div>
+            
+            <div class="flex-1 flex">
+                <div class="w-1/3 border-r bg-gray-50 p-4 overflow-auto">
+                    <h4 class="font-bold mb-3 text-gray-800">Document Analysis</h4>
+                    <div id="aiAnalysisContent">
+                        <!-- AI analysis content will be dynamically generated -->
+                    </div>
+                </div>
+
+                <div class="flex-1 p-4 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold text-gray-800">Generated Borrower Request Letter</h4>
+                        <div class="flex gap-2">
+                            <button id="regenerateLetter" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+                                🔄 Regenerate
+                            </button>
+                            <button class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
+                                📧 Send Email
+                            </button>
+                            <button class="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600">
+                                📄 Export PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 bg-white border rounded-lg p-4 overflow-auto">
+                        <textarea id="generatedLetter" class="w-full h-full resize-none border-none outline-none font-mono text-sm leading-relaxed" placeholder="Generated letter will appear here..."></textarea>
+                    </div>
+
+                    <div class="mt-4 flex justify-between items-center text-sm text-gray-600">
+                        <div class="flex gap-4">
+                            <span id="wordCount">Words: 0</span>
+                            <span id="charCount">Characters: 0</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="cancelAI" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</button>
+                            <button id="copyLetter" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">📋 Copy Letter</button>
+                            <button id="sendRequest" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">✉️ Send Request</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Override Form Modal -->
+    <div id="overrideModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Override 1003 Form</h3>
+                <button id="closeOverride" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            
+            <div id="overrideFields" class="space-y-3">
+                <!-- Override fields will be dynamically generated -->
+            </div>
+            
+            <div class="flex gap-2 mt-4">
+                <button id="updateForm" class="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Update Form
+                </button>
+                <button id="cancelOverride" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let currentTab = 'queue';
+        let currentStatusFilter = 'all';
+        let selectedDoc = null;
+        let aiRequestDoc = null;
+        let overrideData = {};
+
+        // Sample Data
+        const documents = [
+            {
+                id: 1,
+                name: 'NJ_Real_Estate_Contract.pdf',
+                type: 'purchase_contract',
+                status: 'in_review',
+                uploadDate: '2025-05-25',
+                borrower: 'John & Mary Homeowner',
+                issues: [
+                    { type: 'address_mismatch', severity: 'high', description: 'Contract address (125 Madison Ave) differs from application (175 13th St)', location: 'page 3, line 36' },
+                    { type: 'price_verification', severity: 'medium', description: 'Purchase price $750,000 needs income verification', location: 'page 3, line 44' }
+                ],
+                extractedData: {
+                    purchasePrice: 750000,
+                    propertyAddress: '125 Madison Avenue, Morristown, NJ 07960',
+                    buyers: 'John Homeowner, Mary Homeowner',
+                    sellers: 'Laura Houseseller',
+                    closingDate: '45 days after attorney review'
+                },
+                form1003Data: {
+                    propertyAddress: '175 13th Street, Washington, DC 20013',
+                    purchasePrice: 750000,
+                    borrowerName: 'John Homeowner',
+                    coBorrowerName: 'Mary Homeowner'
+                }
+            },
+            {
+                id: 2,
+                name: 'Credit_Report_Homeowners.pdf',
+                type: 'credit_report',
+                status: 'completed',
+                uploadDate: '2025-05-06',
+                borrower: 'John & Mary Homeowner',
+                issues: [
+                    { type: 'score_concern', severity: 'medium', description: 'John credit score 779 vs Mary 771 - verify primary borrower', location: 'page 1' }
+                ],
+                extractedData: {
+                    johnScore: 779,
+                    maryScore: 771,
+                    johnSSN: '999-40-5000',
+                    marySSN: '500-22-2000',
+                    reportDate: '05/06/2025'
+                },
+                form1003Data: {
+                    primaryBorrowerSSN: '999-40-5000',
+                    coBorrowerSSN: '500-22-2000',
+                    creditScore: 779
+                }
+            },
+            {
+                id: 3,
+                name: 'John_Drivers_License.pdf',
+                type: 'id_verification',
+                status: 'incomplete',
+                uploadDate: '2025-05-20',
+                borrower: 'John Homeowner',
+                issues: [
+                    { type: 'address_mismatch', severity: 'high', description: 'License address (456 Maple St) differs from application and contract', location: 'front of license' },
+                    { type: 'expiration', severity: 'low', description: 'License expires 08/24/2027 - valid through closing', location: 'front of license' }
+                ],
+                extractedData: {
+                    name: 'John Homeowner',
+                    address: '456 Maple St, Washington, DC 20007',
+                    licenseNumber: '344-001',
+                    expiration: '08/24/2027',
+                    dob: '03/11/1982'
+                },
+                form1003Data: {
+                    borrowerName: 'John Homeowner',
+                    currentAddress: '175 13th Street, Washington, DC 20013',
+                    dob: '03/11/1982'
+                }
+            },
+            {
+                id: 4,
+                name: 'Mary_Drivers_License.pdf',
+                type: 'id_verification',
+                status: 'rejected',
+                uploadDate: '2025-05-20',
+                borrower: 'Mary Homeowner',
+                issues: [
+                    { type: 'address_mismatch', severity: 'high', description: 'License address (456 Maple St) differs from application', location: 'front of license' },
+                    { type: 'image_quality', severity: 'high', description: 'Signature area is blurred and illegible', location: 'bottom right' }
+                ],
+                extractedData: {
+                    name: 'Mary Homeowner',
+                    address: '456 Maple St, Washington, DC 20007',
+                    licenseNumber: '344-002',
+                    expiration: '08/24/2027',
+                    dob: '08/24/1985'
+                },
+                form1003Data: {
+                    coBorrowerName: 'Mary Homeowner',
+                    currentAddress: '175 13th Street, Washington, DC 20013',
+                    dob: '08/24/1985'
+                }
+            },
+            {
+                id: 5,
+                name: 'Bank_Statement_May2025.pdf',
+                type: 'bank_statement',
+                status: 'in_review',
+                uploadDate: '2025-05-31',
+                borrower: 'John & Mary Homeowner',
+                issues: [
+                    { type: 'large_deposit', severity: 'high', description: 'Large deposit $4,500 on 5/10 requires documentation', location: 'transaction list' },
+                    { type: 'account_verification', severity: 'medium', description: 'Account ending in 567-890 not listed on application', location: 'header' }
+                ],
+                extractedData: {
+                    accountNumber: '111-234-567-890',
+                    openingBalance: 175800.00,
+                    closingBalance: 133850.00,
+                    largeDeposits: [{ amount: 4500, date: '5/10/2025', description: 'Deposit' }],
+                    accountHolders: 'John and Mary Homeowner'
+                },
+                form1003Data: {
+                    checkingAccount: '111-234-XXX-XXX',
+                    accountBalance: 133850.00,
+                    bankName: 'First Citizens Bank'
+                }
+            },
+            {
+                id: 6,
+                name: 'Mary_Paystub_May2025.pdf',
+                type: 'paystub',
+                status: 'completed',
+                uploadDate: '2025-05-15',
+                borrower: 'Mary Homeowner',
+                issues: [],
+                extractedData: {
+                    grossPay: 4275.00,
+                    ytdGross: 35617.50,
+                    employer: 'Capital Pediatrics Group',
+                    payPeriod: 'Bi-weekly',
+                    payDate: '05/15/2025'
+                },
+                form1003Data: {
+                    monthlyIncome: 9263.00,
+                    employer: 'Capital Pediatrics Group',
+                    yearsEmployed: 2
+                }
+            }
+        ];
+
+        const tasks = [
+            { id: 1, title: 'Resolve address discrepancies across documents', priority: 'high', dueDate: '2025-05-26', status: 'in_review' },
+            { id: 2, title: 'Verify large deposit source documentation', priority: 'high', dueDate: '2025-05-27', status: 'incomplete' },
+            { id: 3, title: 'Request new Mary drivers license image', priority: 'medium', dueDate: '2025-05-28', status: 'incomplete' },
+            { id: 4, title: 'Confirm John income calculation accuracy', priority: 'medium', dueDate: '2025-05-29', status: 'in_review' }
+        ];
+
+        // Utility Functions
+        function getFilteredDocs(status = null) {
+            if (!status) return documents;
+            return documents.filter(d => d.status === status);
+        }
+
+        function getStats() {
+            return {
+                total: documents.length,
+                completed: getFilteredDocs('completed').length,
+                inReview: getFilteredDocs('in_review').length,
+                incomplete: getFilteredDocs('incomplete').length,
+                rejected: getFilteredDocs('rejected').length,
+                deleted: getFilteredDocs('deleted').length,
+                issues: documents.filter(d => d.issues.length > 0).length
+            };
+        }
+
+        function getFilteredDocuments() {
+            if (currentStatusFilter === 'all') return documents;
+            if (currentStatusFilter === 'with_issues') return documents.filter(d => d.issues.length > 0);
+            return documents.filter(d => d.status === currentStatusFilter);
+        }
+
+        // UI Generation Functions
+        function renderStats() {
+            const stats = getStats();
+            const statsContainer = document.getElementById('statsContainer');
+            
+            const statCards = [
+                { title: 'Total', value: stats.total, type: 'total', color: 'bg-blue-500' },
+                { title: 'Completed', value: stats.completed, type: 'completed', color: 'bg-green-500' },
+                { title: 'In Review', value: stats.inReview, type: 'in_review', color: 'bg-blue-400' },
+                { title: 'Incomplete', value: stats.incomplete, type: 'incomplete', color: 'bg-yellow-500' },
+                { title: 'Rejected', value: stats.rejected, type: 'rejected', color: 'bg-red-500' },
+                { title: 'Issues', value: stats.issues, type: 'with_issues', color: 'bg-orange-500' }
+            ];
+
+            statsContainer.innerHTML = statCards.map(stat => `
+                <div class="${stat.color} p-4 rounded-lg cursor-pointer hover:opacity-80 transition-opacity" 
+                     onclick="handleStatClick('${stat.type}')">
+                    <h3 class="text-lg font-semibold text-white">${stat.title}</h3>
+                    <p class="text-2xl font-bold text-white">${stat.value}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderDocuments() {
+            const filteredDocs = getFilteredDocuments();
+            const container = document.getElementById('documentsContainer');
+            
+            container.innerHTML = filteredDocs.map(doc => createDocumentCard(doc)).join('');
+            
+            // Also update global view
+            const globalContainer = document.getElementById('globalDocumentsContainer');
+            globalContainer.innerHTML = filteredDocs.map(doc => createDocumentCard(doc)).join('');
+        }
+
+        function createDocumentCard(doc) {
+            const hasHighSeverity = doc.issues.some(issue => issue.severity === 'high');
+            const borderClass = hasHighSeverity ? 'border-red-300 bg-red-50' : 
+                               doc.issues.length > 0 ? 'border-orange-300 bg-orange-50' : 
+                               'border-green-300 bg-green-50';
+            
+            const statusClass = {
+                'completed': 'bg-green-100 text-green-800',
+                'in_review': 'bg-blue-100 text-blue-800',
+                'incomplete': 'bg-yellow-100 text-yellow-800',
+                'rejected': 'bg-red-100 text-red-800',
+                'deleted': 'bg-gray-100 text-gray-800'
+            }[doc.status] || 'bg-gray-100 text-gray-800';
+
+            const comparisonSection = createComparisonSection(doc);
+            const issuesSection = createIssuesSection(doc);
+            const buttonsSection = createButtonsSection(doc);
+
+            return `
+                <div class="border rounded-lg p-4 hover:shadow-md transition-shadow ${borderClass}">
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="font-semibold text-blue-800">${doc.name}</h4>
+                        <span class="px-2 py-1 rounded text-sm font-medium ${statusClass}">
+                            ${doc.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 mb-2">Borrower: ${doc.borrower}</p>
+                    <p class="text-sm text-gray-500 mb-3">Uploaded: ${doc.uploadDate}</p>
+                    
+                    ${comparisonSection}
+                    ${issuesSection}
+                    ${buttonsSection}
+                </div>
+            `;
+        }
+
+        function createComparisonSection(doc) {
+            const fields = Object.entries(doc.extractedData).slice(0, 4);
+            
+            return `
+                <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        1003 Form vs Document Data Comparison
+                    </h5>
+                    <div class="space-y-3">
+                        ${fields.map(([key, value]) => {
+                            const form1003Value = doc.form1003Data[key];
+                            const mismatch = form1003Value && form1003Value !== value;
+                            
+                            return `
+                                <div class="p-3 rounded-lg border-2 ${mismatch ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'}">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="font-semibold text-gray-700 text-sm">
+                                            ${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                        </span>
+                                        ${mismatch ? `
+                                            <button class="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700"
+                                                    onclick="handleFieldOverride(${doc.id}, '${key}')">
+                                                Override This Field
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                    <div class="comparison-grid">
+                                        <div class="bg-blue-100 p-2 rounded border-l-4 border-blue-500">
+                                            <div class="text-xs font-medium text-blue-800 mb-1">DOCUMENT DATA</div>
+                                            <div class="text-sm text-blue-900 break-words">${value}</div>
+                                        </div>
+                                        <div class="bg-purple-100 p-2 rounded border-l-4 border-purple-500">
+                                            <div class="text-xs font-medium text-purple-800 mb-1">1003 FORM DATA</div>
+                                            <div class="text-sm text-purple-900 break-words">${form1003Value || 'Not specified'}</div>
+                                        </div>
+                                    </div>
+                                    ${mismatch ? `
+                                        <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded">
+                                            <div class="text-xs font-bold text-red-800 flex items-center gap-1">
+                                                ⚠ DATA MISMATCH DETECTED
+                                            </div>
+                                            <div class="text-xs text-red-700 mt-1">
+                                                This discrepancy requires review and possible 1003 form update
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createIssuesSection(doc) {
+            if (doc.issues.length === 0) return '';
+            
+            return `
+                <div class="mb-3">
+                    <p class="text-sm font-medium text-red-600 mb-1">Issues Found:</p>
+                    ${doc.issues.map(issue => {
+                        const severityClass = {
+                            'high': 'bg-red-100 text-red-800 border border-red-200',
+                            'medium': 'bg-orange-100 text-orange-800 border border-orange-200',
+                            'low': 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                        }[issue.severity];
+                        
+                        return `
+                            <div class="text-xs p-2 rounded mb-1 ${severityClass}">
+                                <div class="font-medium">${issue.type.replace('_', ' ').toUpperCase()}</div>
+                                <div>${issue.description}</div>
+                                <div class="text-xs mt-1 opacity-75">Location: ${issue.location}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function createButtonsSection(doc) {
+            const canOverride = ['paystub', 'id_verification', 'bank_statement'].includes(doc.type);
+            
+            return `
+                <div class="flex gap-2 flex-wrap">
+                    <button class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                            onclick="openPdfViewer(${doc.id})">
+                        Review PDF
+                    </button>
+                    
+                    ${canOverride ? `
+                        <button class="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600"
+                                onclick="handleSendToOverride(${doc.id})">
+                            Send to Override 1003
+                        </button>
+                    ` : ''}
+                    
+                    <button class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
+                        Accept
+                    </button>
+                    
+                    <button class="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600">
+                        Reject
+                    </button>
+                    
+                    <button class="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600"
+                            onclick="openBigAI(${doc.id})">
+                        Request Update
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            
+            container.innerHTML = tasks.map(task => {
+                const statusClass = {
+                    'completed': 'bg-green-100 text-green-800',
+                    'in_review': 'bg-blue-100 text-blue-800',
+                    'incomplete': 'bg-yellow-100 text-yellow-800'
+                }[task.status];
+                
+                const priorityClass = {
+                    'high': 'bg-red-100 text-red-800',
+                    'medium': 'bg-yellow-100 text-yellow-800',
+                    'low': 'bg-green-100 text-green-800'
+                }[task.priority];
+                
+                return `
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-semibold">${task.title}</h4>
+                                <p class="text-sm text-gray-600">Due: ${task.dueDate}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="px-2 py-1 rounded text-sm ${statusClass}">
+                                    ${task.status.replace('_', ' ').toUpperCase()}
+                                </span>
+                                <span class="px-2 py-1 rounded text-sm ${priorityClass}">
+                                    ${task.priority} priority
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Event Handlers
+        function handleStatClick(statType) {
+            currentTab = 'queue';
+            if (statType === 'total') currentStatusFilter = 'all';
+            else if (statType === 'with_issues') currentStatusFilter = 'with_issues';
+            else currentStatusFilter = statType;
+            
+            updateUI();
+        }
+
+        function handleTabChange(tabName) {
+            currentTab = tabName;
+            updateUI();
+        }
+
+        function handleFilterChange(filterValue) {
+            currentStatusFilter = filterValue;
+            updateUI();
+        }
+
+        function handleFieldOverride(docId, field) {
+            const doc = documents.find(d => d.id === docId);
+            if (!doc) return;
+            
+            const fieldValue = doc.extractedData[field];
+            overrideData = {
+                [field]: fieldValue,
+                fieldName: field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+                documentName: doc.name,
+                currentValue: doc.form1003Data[field] || 'Not specified',
+                newValue: fieldValue
+            };
+            
+            openOverrideModal();
+        }
+
+        function handleSendToOverride(docId) {
+            const doc = documents.find(d => d.id === docId);
+            if (!doc) return;
+            
+            let dataToSend = {};
+            
+            if (doc.type === 'paystub') {
+                dataToSend = {
+                    monthlyIncome: doc.extractedData.grossPay,
+                    ytdIncome: doc.extractedData.ytdGross,
+                    employer: doc.extractedData.employer,
+                    payFrequency: doc.extractedData.payPeriod
+                };
+            } else if (doc.type === 'id_verification') {
+                dataToSend = {
+                    borrowerName: doc.extractedData.name,
+                    currentAddress: doc.extractedData.address,
+                    idNumber: doc.extractedData.licenseNumber,
+                    dateOfBirth: doc.extractedData.dob
+                };
+            } else if (doc.type === 'bank_statement') {
+                dataToSend = {
+                    accountNumber: doc.extractedData.accountNumber,
+                    currentBalance: doc.extractedData.closingBalance,
+                    accountType: 'Checking'
+                };
+            }
+            
+            overrideData = dataToSend;
+            openOverrideModal();
+        }
+
+        function openPdfViewer(docId) {
+            const doc = documents.find(d => d.id === docId);
+            if (!doc) return;
+            
+            selectedDoc = doc;
+            
+            document.getElementById('pdfTitle').textContent = doc.name;
+            document.getElementById('pdfDocName').textContent = doc.name;
+            
+            // Generate PDF content
+            const pdfContent = document.getElementById('pdfContent');
+            pdfContent.innerHTML = generatePdfContent(doc);
+            
+            // Generate analysis content
+            const analysisContent = document.getElementById('pdfAnalysis');
+            analysisContent.innerHTML = generateAnalysisContent(doc);
+            
+            document.getElementById('pdfViewer').classList.remove('hidden');
+        }
+
+        function openBigAI(docId) {
+            const doc = documents.find(d => d.id === docId);
+            if (!doc) return;
+            
+            aiRequestDoc = doc;
+            generateRequestLetter(doc);
+            
+            // Generate AI analysis content
+            const aiAnalysisContent = document.getElementById('aiAnalysisContent');
+            aiAnalysisContent.innerHTML = generateAIAnalysisContent(doc);
+            
+            document.getElementById('bigAIModal').classList.remove('hidden');
+        }
+
+        function openOverrideModal() {
+            const fieldsContainer = document.getElementById('overrideFields');
+            
+            fieldsContainer.innerHTML = Object.entries(overrideData).map(([key, value]) => `
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        ${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                    </label>
+                    <input type="text" value="${value}" 
+                           class="w-full p-2 border border-gray-300 rounded-md" />
+                </div>
+            `).join('');
+            
+            document.getElementById('overrideModal').classList.remove('hidden');
+        }
+
+        function generateRequestLetter(doc) {
+            const addressIssues = doc.issues.filter(issue => issue.type.includes('address'));
+            const qualityIssues = doc.issues.filter(issue => issue.type.includes('quality') || issue.type.includes('image'));
+            const verificationIssues = doc.issues.filter(issue => issue.type.includes('verification') || issue.type.includes('variance'));
+            const documentationIssues = doc.issues.filter(issue => issue.type.includes('deposit') || issue.type.includes('source'));
+
+            const currentDate = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+
+            let letterContent = `Dear ${doc.borrower},
+
+Thank you for submitting your mortgage application documents. We are currently reviewing your file and need some additional information to move forward with your loan approval.
+
+**Document in Question:** ${doc.name}
+**Date Uploaded:** ${doc.uploadDate}
+**Current Status:** ${doc.status.replace('_', ' ').toUpperCase()}
+
+`;
+
+            if (addressIssues.length > 0) {
+                letterContent += `**Address Verification Required:**
+We've noticed some inconsistencies in the addresses across your documents. To ensure accurate processing of your loan:
+
+`;
+                addressIssues.forEach(issue => {
+                    letterContent += `• ${issue.description}\n`;
+                });
+                letterContent += `
+Please provide updated documentation with your current address or a letter of explanation for any address changes.
+
+`;
+            }
+
+            if (qualityIssues.length > 0) {
+                letterContent += `**Document Quality Issue:**
+`;
+                qualityIssues.forEach(issue => {
+                    letterContent += `• ${issue.description}\n`;
+                });
+                letterContent += `
+Please provide a clearer, high-resolution copy of this document. Ensure all text is legible and signatures are clearly visible.
+
+`;
+            }
+
+            if (verificationIssues.length > 0) {
+                letterContent += `**Income/Employment Verification:**
+`;
+                verificationIssues.forEach(issue => {
+                    letterContent += `• ${issue.description}\n`;
+                });
+                letterContent += `
+Please provide additional documentation to verify the discrepancies noted above, such as:
+- Recent pay stubs
+- Employment verification letter
+- Tax returns
+- Bank statements showing income deposits
+
+`;
+            }
+
+            if (documentationIssues.length > 0) {
+                letterContent += `**Additional Documentation Required:**
+`;
+                documentationIssues.forEach(issue => {
+                    letterContent += `• ${issue.description}\n`;
+                });
+                letterContent += `
+Please provide documentation explaining the source of any large deposits or unusual transactions.
+
+`;
+            }
+
+            letterContent += `**What You Need to Do:**
+1. Review the specific issues mentioned above
+2. Gather the requested documentation
+3. Upload the new documents through your secure borrower portal
+4. Contact us if you have any questions or need clarification
+
+**Important Notes:**
+- Please submit the requested items within 10 business days to avoid delays in processing
+- All documents should be clear, complete, and legible
+- If you're unable to provide any requested item, please contact us to discuss alternatives
+
+We understand that gathering documentation can be time-consuming, and we appreciate your cooperation. Our goal is to process your loan application as quickly and efficiently as possible while ensuring all regulatory requirements are met.
+
+If you have any questions about these requirements or need assistance, please don't hesitate to contact me directly at (555) 123-4567 or email processing@absolutehomemortgage.com.
+
+Thank you for choosing Absolute Home Mortgage Corporation. We look forward to helping you achieve your homeownership goals.
+
+Best regards,
+
+**Loan Processing Department**
+Absolute Home Mortgage Corporation
+330 Passaic Ave, Suite 204
+Fairfield, NJ 07004
+
+**Reference:** Loan Application #${Math.random().toString(36).substring(2, 10).toUpperCase()}
+**Date:** ${currentDate}
+
+---
+*This communication is from a debt collector attempting to collect a debt. Any information obtained will be used for that purpose. This is a communication from a loan processor regarding your mortgage application.*`;
+
+            document.getElementById('generatedLetter').value = letterContent;
+            updateLetterStats();
+        }
+
+        function generatePdfContent(doc) {
+            return `
+                <div class="border p-4 rounded bg-white">
+                    <h4 class="font-bold mb-4 text-lg border-b pb-2">Document Content</h4>
+                    <div class="grid grid-cols-1 gap-4">
+                        ${Object.entries(doc.extractedData).map(([key, value]) => {
+                            const hasIssue = doc.issues.some(issue => 
+                                issue.description.toLowerCase().includes(key.toLowerCase()) ||
+                                issue.description.toLowerCase().includes(String(value).toLowerCase())
+                            );
+                            const issueType = hasIssue ? doc.issues.find(issue => 
+                                issue.description.toLowerCase().includes(key.toLowerCase()) ||
+                                issue.description.toLowerCase().includes(String(value).toLowerCase())
+                            ) : null;
+                            
+                            const bgClass = hasIssue && issueType?.severity === 'high' ? 'bg-red-100 border-red-400' :
+                                          hasIssue && issueType?.severity === 'medium' ? 'bg-orange-100 border-orange-400' :
+                                          hasIssue ? 'bg-yellow-100 border-yellow-400' :
+                                          'bg-green-100 border-green-300';
+                            
+                            const severityClass = issueType?.severity === 'high' ? 'bg-red-200 text-red-800' :
+                                                 issueType?.severity === 'medium' ? 'bg-orange-200 text-orange-800' :
+                                                 'bg-yellow-200 text-yellow-800';
+                            
+                            return `
+                                <div class="p-3 rounded border-2 ${bgClass}">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="font-semibold text-gray-800">
+                                            ${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:
+                                        </span>
+                                        ${hasIssue ? `
+                                            <span class="px-2 py-1 rounded text-xs font-bold ${severityClass}">
+                                                ${issueType?.severity?.toUpperCase()}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+                                    <div class="text-gray-700 mb-2 font-mono bg-white p-2 rounded border">
+                                        ${String(value)}
+                                    </div>
+                                    ${hasIssue ? `
+                                        <div class="text-xs p-2 bg-white rounded border-l-4 border-red-500">
+                                            <div class="font-bold text-red-800">Issue Detected:</div>
+                                            <div class="text-red-700">${issueType.description}</div>
+                                            <div class="text-gray-600 mt-1">Location: ${issueType.location}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <div class="border p-4 rounded bg-white">
+                    <h4 class="font-bold mb-4 text-lg border-b pb-2">Document Metadata</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="space-y-2">
+                            <div><strong>File Type:</strong> ${doc.type.replace('_', ' ').toUpperCase()}</div>
+                            <div><strong>Upload Date:</strong> ${doc.uploadDate}</div>
+                            <div><strong>Status:</strong> ${doc.status.replace('_', ' ').toUpperCase()}</div>
+                            <div><strong>Borrower:</strong> ${doc.borrower}</div>
+                        </div>
+                        <div class="space-y-2">
+                            <div><strong>Issues Found:</strong> ${doc.issues.length}</div>
+                            <div><strong>High Severity:</strong> ${doc.issues.filter(i => i.severity === 'high').length}</div>
+                            <div><strong>Medium Severity:</strong> ${doc.issues.filter(i => i.severity === 'medium').length}</div>
+                            <div><strong>Low Severity:</strong> ${doc.issues.filter(i => i.severity === 'low').length}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border p-4 rounded bg-white">
+                    <h4 class="font-bold mb-4 text-lg border-b pb-2">Processing History</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                            <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <div class="text-sm">
+                                <div class="font-medium">Document uploaded</div>
+                                <div class="text-gray-600">${doc.uploadDate}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <div class="text-sm">
+                                <div class="font-medium">AI analysis completed</div>
+                                <div class="text-gray-600">${doc.issues.length} issues detected</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <div class="text-sm">
+                                <div class="font-medium">Ready for review</div>
+                                <div class="text-gray-600">Current status: ${doc.status}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border p-4 rounded bg-white">
+                    <h4 class="font-bold mb-4 text-lg border-b pb-2">Compliance Check</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-600">✓</span>
+                            <span>Document format validation passed</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-600">✓</span>
+                            <span>Data extraction completed</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="${doc.issues.length > 0 ? "text-orange-600" : "text-green-600"}">
+                                ${doc.issues.length > 0 ? "⚠" : "✓"}
+                            </span>
+                            <span>Quality assurance review</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-blue-600">ℹ</span>
+                            <span>Regulatory compliance verified</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateAnalysisContent(doc) {
+            return `
+                <div class="mb-4">
+                    <h5 class="font-semibold mb-2">Issues (${doc.issues.length})</h5>
+                    ${doc.issues.length === 0 ? `
+                        <div class="text-green-600 bg-green-50 p-3 rounded">
+                            ✓ No issues detected
+                        </div>
+                    ` : `
+                        <div class="space-y-2">
+                            ${doc.issues.map(issue => {
+                                const bgClass = issue.severity === 'high' ? 'bg-red-50 border-l-4 border-red-400' :
+                                               issue.severity === 'medium' ? 'bg-orange-50 border-l-4 border-orange-400' :
+                                               'bg-yellow-50 border-l-4 border-yellow-400';
+                                
+                                return `
+                                    <div class="p-3 rounded text-sm ${bgClass}">
+                                        <div class="font-medium">${issue.type.replace('_', ' ').toUpperCase()}</div>
+                                        <div class="text-xs mt-1">${issue.description}</div>
+                                        <div class="text-xs mt-1 opacity-75">📍 ${issue.location}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="font-semibold mb-2">1003 Form Comparison</h5>
+                    <div class="space-y-2">
+                        ${Object.entries(doc.extractedData).map(([key, docValue]) => {
+                            const form1003Value = doc.form1003Data[key];
+                            const mismatch = form1003Value && form1003Value !== docValue;
+                            
+                            return `
+                                <div class="p-2 rounded text-xs ${mismatch ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}">
+                                    <div class="font-medium">${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</div>
+                                    <div class="mt-1">
+                                        <div class="mb-1">
+                                            <span class="text-blue-600">Document:</span> ${String(docValue)}
+                                        </div>
+                                        <div>
+                                            <span class="text-purple-600">1003 Form:</span> ${String(form1003Value || 'Not specified')}
+                                        </div>
+                                        ${mismatch ? '<div class="text-red-600 font-medium mt-1">⚠ Values do not match</div>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <button class="w-full px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+                            onclick="handleSendToOverride(${doc.id})">
+                        Send to Override 1003
+                    </button>
+                    <button class="w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        Mark as Reviewed
+                    </button>
+                    <button class="w-full px-3 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                            onclick="openBigAI(${doc.id})">
+                        Request Update via BIG AI
+                    </button>
+                </div>
+            `;
+        }
+
+        function generateAIAnalysisContent(doc) {
+            return `
+                <div class="space-y-4">
+                    <div class="bg-white p-3 rounded border">
+                        <h5 class="font-semibold text-sm text-gray-700 mb-2">Document Info</h5>
+                        <div class="text-xs space-y-1">
+                            <div><strong>File:</strong> ${doc.name}</div>
+                            <div><strong>Type:</strong> ${doc.type.replace('_', ' ').toUpperCase()}</div>
+                            <div><strong>Borrower:</strong> ${doc.borrower}</div>
+                            <div><strong>Status:</strong> ${doc.status.replace('_', ' ').toUpperCase()}</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded border">
+                        <h5 class="font-semibold text-sm text-gray-700 mb-2">Issues Detected (${doc.issues.length})</h5>
+                        <div class="space-y-2">
+                            ${doc.issues.map(issue => {
+                                const bgClass = issue.severity === 'high' ? 'bg-red-50 border border-red-200' :
+                                               issue.severity === 'medium' ? 'bg-orange-50 border border-orange-200' :
+                                               'bg-yellow-50 border border-yellow-200';
+                                
+                                return `
+                                    <div class="p-2 rounded text-xs ${bgClass}">
+                                        <div class="font-medium">${issue.type.replace('_', ' ').toUpperCase()}</div>
+                                        <div class="mt-1">${issue.description}</div>
+                                        <div class="mt-1 text-gray-500">📍 ${issue.location}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded border">
+                        <h5 class="font-semibold text-sm text-gray-700 mb-2">AI Recommendations</h5>
+                        <div class="text-xs space-y-2">
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-600">✓</span>
+                                <span>Professional tone appropriate for borrower communication</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-600">✓</span>
+                                <span>Specific issue identification and resolution steps</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-600">✓</span>
+                                <span>Clear timeline and contact information provided</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-600">✓</span>
+                                <span>Regulatory compliance language included</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                        <h5 class="font-semibold text-sm text-blue-800 mb-2">BIG AI Analysis</h5>
+                        <div class="text-xs text-blue-700">
+                            Based on the document issues detected, I have generated a professional, empathetic request letter that:
+                            <ul class="mt-2 space-y-1">
+                                <li>• Addresses specific concerns clearly</li>
+                                <li>• Maintains a helpful, non-confrontational tone</li>
+                                <li>• Provides clear next steps for the borrower</li>
+                                <li>• Includes all necessary regulatory language</li>
+                                <li>• Offers multiple contact methods for support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateLetterStats() {
+            const letter = document.getElementById('generatedLetter').value;
+            const words = letter.trim() ? letter.trim().split(/\s+/).length : 0;
+            const chars = letter.length;
+            
+            document.getElementById('wordCount').textContent = `Words: ${words}`;
+            document.getElementById('charCount').textContent = `Characters: ${chars}`;
+        }
+
+        function updateUI() {
+            // Update tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const tabName = btn.dataset.tab;
+                if (tabName === currentTab) {
+                    btn.className = 'tab-btn px-6 py-3 font-medium border-b-2 border-blue-500 text-blue-600';
+                } else {
+                    btn.className = 'tab-btn px-6 py-3 font-medium text-gray-500 hover:text-gray-700';
+                }
+            });
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`${currentTab}-tab`).classList.remove('hidden');
+
+            // Update filter
+            document.getElementById('statusFilter').value = currentStatusFilter;
+            const clearBtn = document.getElementById('clearFilter');
+            if (currentStatusFilter === 'all') {
+                clearBtn.classList.add('hidden');
+            } else {
+                clearBtn.classList.remove('hidden');
+            }
+
+            // Re-render content
+            renderStats();
+            renderDocuments();
+            renderTasks();
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => handleTabChange(btn.dataset.tab));
+            });
+
+            // Filter
+            document.getElementById('statusFilter').addEventListener('change', (e) => {
+                handleFilterChange(e.target.value);
+            });
+
+            document.getElementById('clearFilter').addEventListener('click', () => {
+                handleFilterChange('all');
+            });
+
+            // Modal close buttons
+            document.getElementById('closePdfViewer').addEventListener('click', () => {
+                document.getElementById('pdfViewer').classList.add('hidden');
+            });
+
+            document.getElementById('closeBigAI').addEventListener('click', () => {
+                document.getElementById('bigAIModal').classList.add('hidden');
+            });
+
+            document.getElementById('closeOverride').addEventListener('click', () => {
+                document.getElementById('overrideModal').classList.add('hidden');
+            });
+
+            // BIG AI buttons
+            document.getElementById('regenerateLetter').addEventListener('click', () => {
+                if (aiRequestDoc) generateRequestLetter(aiRequestDoc);
+            });
+
+            document.getElementById('generatedLetter').addEventListener('input', updateLetterStats);
+
+            document.getElementById('copyLetter').addEventListener('click', () => {
+                const letter = document.getElementById('generatedLetter').value;
+                navigator.clipboard.writeText(letter).then(() => {
+                    alert('Letter copied to clipboard!');
+                });
+            });
+
+            document.getElementById('sendRequest').addEventListener('click', () => {
+                alert('Request letter sent to borrower successfully!');
+                document.getElementById('bigAIModal').classList.add('hidden');
+            });
+
+            document.getElementById('cancelAI').addEventListener('click', () => {
+                document.getElementById('bigAIModal').classList.add('hidden');
+            });
+
+            // Override form buttons
+            document.getElementById('updateForm').addEventListener('click', () => {
+                alert('Data updated in 1003 form successfully!');
+                document.getElementById('overrideModal').classList.add('hidden');
+            });
+
+            document.getElementById('cancelOverride').addEventListener('click', () => {
+                document.getElementById('overrideModal').classList.add('hidden');
+            });
+
+            // Initial render
+            updateUI();
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
