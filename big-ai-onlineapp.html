@@ -278,54 +278,6 @@
             font-size: 3rem;
             animation: float 3s ease-in-out infinite;
         }
-        
-        .avatar-face {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .avatar-eyes {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-        
-        .avatar-eye {
-            width: 12px;
-            height: 12px;
-            background: white;
-            border-radius: 50%;
-            position: relative;
-            animation: blink 4s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 90%, 100% { transform: scaleY(1); }
-            95% { transform: scaleY(0.1); }
-        }
-        
-        .avatar-mouth {
-            width: 30px;
-            height: 15px;
-            border: 3px solid white;
-            border-top: none;
-            border-radius: 0 0 30px 30px;
-            animation: talk 0.3s infinite alternate;
-        }
-        
-        .avatar-mouth.talking {
-            animation: talk 0.3s infinite alternate;
-        }
-        
-        @keyframes talk {
-            0% { height: 15px; }
-            100% { height: 20px; }
-        }
 
         @keyframes float {
             0%, 100% { transform: translateY(0); }
@@ -755,29 +707,7 @@
             }
         }
 
-        .message-bubble.urgent {
-            border: 2px solid var(--accent);
-            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
-        }
-        
-        .reminder-badge {
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            background: var(--accent);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
-            animation: bounce 2s infinite;
-            z-index: 100;
-            cursor: pointer;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
+        /* Responsive Design */
         @media (max-width: 1200px) {
             .main-grid {
                 grid-template-columns: 250px 1fr;
@@ -891,7 +821,7 @@
                                     <div class="avatar-eye"></div>
                                     <div class="avatar-eye"></div>
                                 </div>
-                                <div class="avatar-mouth" id="avatarMouth"></div>
+                                <div class="avatar-mouth"></div>
                             </div>
                             <div class="voice-waves" id="voiceWaves" style="display: none;">
                                 <div class="voice-wave"></div>
@@ -903,8 +833,8 @@
                         </div>
                     </div>
                     <div class="ai-info">
-                        <div class="ai-name">Alex - Your Personal Mortgage Guide</div>
-                        <div class="ai-status" id="aiStatus">Ready to help you get your dream home! 🏡</div>
+                        <div class="ai-name">Alex - Your Mortgage Guide</div>
+                        <div class="ai-status" id="aiStatus">Ready to help you with your application</div>
                     </div>
                     <div class="voice-controls">
                         <button class="voice-btn" id="voiceToggle" onclick="toggleVoice()" title="Enable Voice">
@@ -1200,52 +1130,10 @@
             isListening: false,
             conversation: [],
             lastInteraction: Date.now(),
-            distractionCount: 0,
-            questionsAsked: 0,
-            reminderInterval: null
+            offTrackCount: 0,
+            reminderTimer: null,
+            calculatorUsageCount: 0
         };
-
-        // Proactive Engagement System
-        function startProactiveEngagement() {
-            // Check every 30 seconds if user needs nudging
-            appState.reminderInterval = setInterval(() => {
-                const timeSinceLastInteraction = Date.now() - appState.lastInteraction;
-                
-                // If user hasn't interacted for 45 seconds
-                if (timeSinceLastInteraction > 45000 && timeSinceLastInteraction < 60000) {
-                    const reminders = [
-                        "Hey there! I'm still here to help. Did you have a question about this part? Remember, you can ask me about payment calculations or anything else!",
-                        "I notice you might be thinking about this question. Would you like me to explain it differently? Or maybe you want to calculate what your payments might be?",
-                        "Taking your time is totally fine! While you're thinking, did you know I can help calculate your estimated payments or explain any mortgage terms?",
-                        "Still with me? If this question is confusing, just say 'help' and I'll explain it better. Or ask me anything about the mortgage process!"
-                    ];
-                    const reminder = reminders[Math.floor(Math.random() * reminders.length)];
-                    addAIMessage(reminder, false);
-                }
-                
-                // If user hasn't interacted for 90 seconds
-                if (timeSinceLastInteraction > 90000 && timeSinceLastInteraction < 100000) {
-                    appState.distractionCount++;
-                    addAIMessage("⏰ Hey! Let's get back to your application. We're making great progress and I don't want you to lose momentum. This question is important for your loan approval. Need help answering it?", true);
-                    if (appState.voiceEnabled) {
-                        speak("Hey! Let's get back to your application. Do you need help with this question?");
-                    }
-                }
-                
-                // If user hasn't interacted for 2 minutes
-                if (timeSinceLastInteraction > 120000) {
-                    addAIMessage("🎯 I really need this information to move forward with your application. Let me make this easier - would you prefer to: \n1) Answer this question now\n2) Skip it and come back later\n3) Take a break and save your progress\n4) Ask me to explain what this means", true);
-                    showQuestionOptions(['Answer now', 'Skip for later', 'Take a break', 'Explain this to me']);
-                    appState.lastInteraction = Date.now(); // Reset to avoid spam
-                }
-            }, 30000);
-        }
-
-        // Track user interaction
-        function trackInteraction() {
-            appState.lastInteraction = Date.now();
-            appState.distractionCount = Math.max(0, appState.distractionCount - 1);
-        }
 
         // Speech Synthesis Setup
         let synth = window.speechSynthesis;
@@ -1313,9 +1201,11 @@
         }
 
         function selectBestVoice() {
-            // Try to find a female English voice for Sophie
-            currentVoice = voices.find(voice => voice.name.includes('Female') && voice.lang.includes('en')) ||
-                          voices.find(voice => voice.name.includes('Samantha')) ||
+            // Try to find a natural, friendly voice for Alex
+            currentVoice = voices.find(voice => voice.name.includes('Samantha')) ||
+                          voices.find(voice => voice.name.includes('Alex')) ||
+                          voices.find(voice => voice.name.includes('Daniel')) ||
+                          voices.find(voice => voice.lang.includes('en-US') && voice.name.includes('Natural')) ||
                           voices.find(voice => voice.lang.includes('en-US')) ||
                           voices[0];
         }
@@ -1361,27 +1251,60 @@
 
         // Start Conversation
         function startConversation() {
-            const welcomeMessage = "Hi! I'm Alex, your personal mortgage guide! 👋 I'm here to make getting your home loan as easy as possible. I'll walk you through everything step-by-step, and here's the best part - you can ask me ANYTHING along the way! Want to know what your payment might be? Curious about down payment options? Just ask! I can calculate payments, explain terms, or clarify any confusing parts. This usually takes about 15-20 minutes. Ready to get your dream home?";
+            const welcomeMessage = "Hi! I'm Alex, your personal mortgage guide. I'm here to make your application process smooth and easy. This typically takes about 15-20 minutes, but we can go at your pace. By the way, feel free to ask me ANY questions along the way - about payments, down payments, closing costs, or anything else! You can speak to me using the microphone or type. Ready to get started?";
             addAIMessage(welcomeMessage);
             if (appState.voiceEnabled) {
                 speak(welcomeMessage);
             }
             
             // Show initial options
-            showQuestionOptions(['Yes, let\'s do this!', 'Tell me more first', 'What can you help with?', 'I\'m nervous about this']);
+            showQuestionOptions(['Yes, let\'s start!', 'Tell me about the process', 'Calculate my payment first']);
             
-            // Start proactive engagement monitoring
-            startProactiveEngagement();
-            
-            // Set periodic helpful reminders
-            setTimeout(() => {
-                if (appState.questionsAsked < 3) {
-                    addAIMessage("💡 Quick tip: You can ask me to calculate your estimated monthly payment at any time - just say 'calculate payment' or click the calculator on the right!", false);
-                }
-            }, 60000);
+            // Start tracking for engagement
+            startEngagementTracking();
         }
 
-        // Ask Current Question with helpful reminders
+        // Enhanced engagement tracking
+        function startEngagementTracking() {
+            // Check every 30 seconds for inactivity
+            setInterval(() => {
+                const timeSinceLastInteraction = Date.now() - appState.lastInteraction;
+                
+                // If more than 1 minute of inactivity
+                if (timeSinceLastInteraction > 60000 && !appState.reminderTimer) {
+                    appState.offTrackCount++;
+                    sendReminder();
+                }
+            }, 30000);
+        }
+
+        // Send reminder to stay on track
+        function sendReminder() {
+            appState.reminderTimer = true;
+            
+            const reminders = [
+                "Hey, are you still there? We were making great progress! Would you like to continue with your application or do you need help with something?",
+                "I noticed you might be stuck. Remember, I can help calculate your payment or answer any questions! Should we continue with the application?",
+                "Let's get back on track! We only have a few more questions in this section. Or would you like to use one of the calculators first?",
+                "Don't worry if something seems confusing - I'm here to help! Should we continue, or would you like me to explain anything?",
+                "Quick reminder: You're doing great! We're already " + Math.round((appState.currentSection / urlaSections.length) * 100) + "% done. Ready to continue?"
+            ];
+            
+            const reminder = reminders[Math.min(appState.offTrackCount - 1, reminders.length - 1)];
+            addAIMessage(reminder);
+            
+            if (appState.voiceEnabled) {
+                speak(reminder);
+            }
+            
+            showQuestionOptions(['Continue application', 'I have a question', 'Take a break']);
+            
+            setTimeout(() => {
+                appState.reminderTimer = false;
+            }, 5000);
+        }
+
+        // Ask Current Question
         function askCurrentQuestion() {
             const section = urlaSections[appState.currentSection];
             const question = section.questions[appState.currentQuestion];
@@ -1392,25 +1315,19 @@
                 return;
             }
             
-            // Track questions asked
-            appState.questionsAsked++;
-            
-            // Main question
-            addAIMessage(question.text);
-            
-            // Add helpful context every few questions
-            if (appState.questionsAsked % 4 === 0) {
-                setTimeout(() => {
-                    const helpfulTips = [
-                        "📱 Remember: You can use voice commands by clicking the microphone button!",
-                        "💰 Need to know your payment? Just ask me to calculate it anytime!",
-                        "❓ Confused about any term? Just ask me what it means!",
-                        "⏸️ Need a break? Just say 'pause' and we'll save your progress!",
-                        "🔢 Want to see if you qualify? Ask me to calculate your debt-to-income ratio!"
-                    ];
-                    const tip = helpfulTips[Math.floor(Math.random() * helpfulTips.length)];
-                    addAIMessage(tip, false);
-                }, 2000);
+            // Add helpful reminders periodically
+            if (appState.currentQuestion % 3 === 0 && appState.currentQuestion > 0) {
+                const helpfulReminders = [
+                    "By the way, if you need to calculate your monthly payment at any point, just let me know!",
+                    "Remember, you can ask me questions about the process anytime - like 'What's DTI?' or 'How much down payment do I need?'",
+                    "Quick tip: I have calculators available if you need help figuring out your income or payments!",
+                    "Feel free to ask me anything! Like 'What documents will I need?' or 'How long does closing take?'",
+                    "Just so you know, I can explain any mortgage terms you're unsure about - just ask!"
+                ];
+                const reminder = helpfulReminders[Math.floor(Math.random() * helpfulReminders.length)];
+                addAIMessage(question.text + "\n\n💡 " + reminder);
+            } else {
+                addAIMessage(question.text);
             }
             
             if (appState.voiceEnabled) {
@@ -1419,18 +1336,20 @@
             
             // Show appropriate input options based on question type
             if (question.type === 'boolean') {
-                showQuestionOptions(['Yes', 'No', 'I\'m not sure', 'What does this mean?']);
+                showQuestionOptions(['Yes', 'No', 'I need to calculate something first']);
             } else if (question.type === 'select' && question.options) {
-                const optionsWithHelp = [...question.options, 'Help me choose'];
+                const optionsWithHelp = [...question.options, 'Help me understand these options'];
                 showQuestionOptions(optionsWithHelp);
             }
             
             updateCurrentSummary();
-            trackInteraction();
+            
+            // Reset interaction timer
+            appState.lastInteraction = Date.now();
         }
 
-        // Add AI Message with urgency option
-        function addAIMessage(text, urgent = false) {
+        // Add AI Message
+        function addAIMessage(text) {
             const container = document.getElementById('messagesContainer');
             
             // Show typing indicator
@@ -1444,21 +1363,14 @@
             container.appendChild(typingDiv);
             container.scrollTop = container.scrollHeight;
             
-            // Animate avatar mouth when talking
-            const mouth = document.getElementById('avatarMouth');
-            if (mouth) {
-                mouth.classList.add('talking');
-            }
-            
             // Show actual message after delay
-            const delay = urgent ? 500 : 1000;
             setTimeout(() => {
                 typingDiv.remove();
                 
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message ai';
                 messageDiv.innerHTML = `
-                    <div class="message-bubble${urgent ? ' urgent' : ''}">
+                    <div class="message-bubble">
                         <div class="message-text">${text}</div>
                         <div class="message-time">${getCurrentTime()}</div>
                     </div>
@@ -1466,18 +1378,13 @@
                 container.appendChild(messageDiv);
                 container.scrollTop = container.scrollHeight;
                 
-                // Stop mouth animation
-                if (mouth) {
-                    mouth.classList.remove('talking');
-                }
-                
                 // Add to conversation history
                 appState.conversation.push({
                     type: 'ai',
                     text: text,
                     timestamp: new Date()
                 });
-            }, delay);
+            }, 1000);
         }
 
         // Add User Message
@@ -1524,27 +1431,38 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // Process User Response with engagement tracking
+        // Process User Response
         function processResponse(response) {
-            trackInteraction();
-            const section = urlaSections[appState.currentSection];
-            const question = section.questions[appState.currentQuestion];
+            appState.lastInteraction = Date.now();
+            appState.offTrackCount = 0;
             
-            // Check if user is asking for help or getting distracted
+            // Check if user is asking for help or calculations
             const lowerResponse = response.toLowerCase();
             
-            if (lowerResponse.includes('what does this mean') || lowerResponse.includes('help me choose') || lowerResponse.includes('i\'m not sure')) {
-                // Provide help but remind them to answer
-                handleHelpRequest(question);
+            if (lowerResponse.includes('calculate') || lowerResponse.includes('payment') || lowerResponse.includes('afford')) {
+                appState.calculatorUsageCount++;
+                if (appState.calculatorUsageCount > 2) {
+                    addAIMessage("I love that you're being thorough with the calculations! Let's finish this question first, then I'll help you with the calculator. We're making great progress!");
+                    setTimeout(() => askCurrentQuestion(), 1500);
+                    return;
+                } else {
+                    openCalculator('payment');
+                    addAIMessage("Let me help you with that calculation. After we're done, we'll continue with your application!");
+                    return;
+                }
+            }
+            
+            if (lowerResponse.includes('help') || lowerResponse.includes('understand') || lowerResponse.includes('what is') || lowerResponse.includes('explain')) {
+                provideContextualHelp(response);
+                setTimeout(() => {
+                    addAIMessage("Now, let's get back to your application. We were on:");
+                    askCurrentQuestion();
+                }, 3000);
                 return;
             }
             
-            if (lowerResponse.includes('calculate') || lowerResponse.includes('payment') || lowerResponse.includes('how much')) {
-                // Handle calculation request but keep them on track
-                handleCalculationRequest();
-                addAIMessage("I've opened the calculator for you! Once you're done, let's get back to this question - " + question.text, true);
-                return;
-            }
+            const section = urlaSections[appState.currentSection];
+            const question = section.questions[appState.currentQuestion];
             
             // Save response
             if (question) {
@@ -1552,27 +1470,29 @@
                 
                 // Validate response
                 if (!validateResponse(response, question.type)) {
-                    addAIMessage("Hmm, that doesn't look quite right. " + getValidationHelp(question.type) + " Let's try again - this is important for your application!", true);
+                    addAIMessage("Hmm, I need a valid response for this question. " + getValidationHelp(question.type) + " Let's try again!");
+                    setTimeout(() => askCurrentQuestion(), 1500);
                     return;
                 }
             }
             
-            // Move to next question
+            // Move to next question with encouraging feedback
             appState.currentQuestion++;
             
-            // Add encouraging but focused response
-            const contextualResponses = [
-                "Perfect! Let's keep this momentum going. ",
-                "Great answer! We're making excellent progress. ",
-                "Exactly what I needed! Moving right along... ",
-                "Fantastic! You're doing great. Next up: ",
-                "Got it! We're one step closer to your approval. "
+            const encouragements = [
+                "Perfect! Let's keep going - ",
+                "Great answer! Next up - ",
+                "Excellent! Moving right along - ",
+                "Got it! You're doing fantastic - ",
+                "Wonderful! Here's the next one - "
             ];
-            const randomResponse = contextualResponses[Math.floor(Math.random() * contextualResponses.length)];
             
-            // If user has been distracted, be more assertive
-            if (appState.distractionCount > 0) {
-                addAIMessage("Good! See, that wasn't so hard! Let's keep going while we're on a roll. 💪", false);
+            const encouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
+            
+            // Periodically remind about progress
+            if (appState.currentQuestion % 5 === 0) {
+                const progress = Math.round(((appState.currentSection * 10 + appState.currentQuestion) / (urlaSections.length * 10)) * 100);
+                addAIMessage(encouragement + `We're ${progress}% done with your application!`);
             }
             
             setTimeout(() => {
@@ -1580,69 +1500,48 @@
             }, 500);
         }
 
-        // Handle help requests
-        function handleHelpRequest(question) {
-            const helpTexts = {
-                'ssn': "Your Social Security Number is required for credit checks. It's completely secure and encrypted. Format: 123-45-6789",
-                'income': "Enter your total annual income before taxes. Include salary, bonuses, and commissions. If self-employed, I can help calculate your qualifying income!",
-                'down_payment': "This is how much cash you'll put toward the purchase. Typically 3-20% of the home price. FHA allows as little as 3.5%!",
-                'property_use': "Primary Residence = where you'll live most of the time. Second Home = vacation property. Investment = rental property. This affects your interest rate!",
-                'citizenship': "Your citizenship status helps determine which loan programs you qualify for. All options can get mortgages!",
-                'employment_type': "W-2 = regular employee. Self-employed = you own a business. 1099 = independent contractor. Each has different income calculations."
-            };
+        // Provide contextual help
+        function provideContextualHelp(query) {
+            const lowerQuery = query.toLowerCase();
             
-            const help = helpTexts[question.id] || "This information helps determine your loan eligibility and terms.";
-            addAIMessage(help);
-            
-            setTimeout(() => {
-                addAIMessage("Now that you understand, please answer: " + question.text + " (I really need this to move forward!)", true);
-                if (question.type === 'boolean') {
-                    showQuestionOptions(['Yes', 'No']);
-                } else if (question.type === 'select' && question.options) {
-                    showQuestionOptions(question.options);
-                }
-            }, 2000);
-        }
-
-        // Handle calculation requests
-        function handleCalculationRequest() {
-            openCalculator('payment');
-            appState.distractionCount++;
-            
-            if (appState.distractionCount > 2) {
-                setTimeout(() => {
-                    addAIMessage("Hey, I love that you're interested in the numbers, but we need to finish gathering your information first! The more complete your application, the better rate you might get. Let's focus! 🎯", true);
-                }, 3000);
+            if (lowerQuery.includes('dti') || lowerQuery.includes('debt to income')) {
+                addAIMessage("DTI (Debt-to-Income ratio) is the percentage of your monthly income that goes to debt payments. Most loans require a DTI under 43-50%. I can calculate yours if you'd like!");
+            } else if (lowerQuery.includes('down payment')) {
+                addAIMessage("Down payment requirements vary:\n• Conventional: 3-20%\n• FHA: 3.5%\n• VA/USDA: 0%\nPutting 20% down avoids PMI (mortgage insurance).");
+            } else if (lowerQuery.includes('closing cost')) {
+                addAIMessage("Closing costs typically run 2-5% of the loan amount. They include appraisal, title insurance, origination fees, and more. Some can be negotiated!");
+            } else if (lowerQuery.includes('credit score')) {
+                addAIMessage("Credit score requirements:\n• Conventional: 620+\n• FHA: 580+ (3.5% down) or 500+ (10% down)\n• VA: No minimum (lender dependent)\n• USDA: 640+");
+            } else {
+                addAIMessage("That's a great question! Let me explain that briefly, then we'll continue with your application...");
             }
         }
 
-        // Send Message with enhanced interaction
+        // Send Message
         function sendMessage() {
-            trackInteraction();
             const input = document.getElementById('userInput');
             const message = input.value.trim();
             
             if (message) {
                 addUserMessage(message);
                 input.value = '';
+                appState.lastInteraction = Date.now();
                 
-                // Check for off-topic conversation
+                // Check for special commands or off-topic questions
                 const lowerMessage = message.toLowerCase();
-                if (lowerMessage.includes('weather') || lowerMessage.includes('sports') || 
-                    lowerMessage.includes('news') || lowerMessage.includes('joke')) {
-                    addAIMessage("Ha! I appreciate the chat, but let's stay focused on getting you approved for this mortgage! We can celebrate with jokes after you get your dream home. 😊 Now, back to the question...", true);
+                if (lowerMessage.includes('help')) {
+                    showHelp();
                     setTimeout(() => {
-                        const section = urlaSections[appState.currentSection];
-                        const question = section.questions[appState.currentQuestion];
-                        if (question) {
-                            addAIMessage(question.text, true);
-                        }
-                    }, 2000);
-                    return;
+                        addAIMessage("Alright, let's get back to your application. We were working on:");
+                        askCurrentQuestion();
+                    }, 3000);
+                } else if (lowerMessage.includes('calculate')) {
+                    openCalculator('payment');
+                } else if (lowerMessage.includes('stop') || lowerMessage.includes('quit')) {
+                    pauseApplication();
+                } else {
+                    processResponse(message);
                 }
-                
-                // Process legitimate response
-                processResponse(message);
             }
         }
 
@@ -1855,13 +1754,27 @@
 
         // Quick Action Functions
         function askForHelp() {
-            addAIMessage("I'm here to help! You can:\n• Ask me to explain any question\n• Use the calculators on the right\n• Say 'skip' to come back to a question later\n• Ask about loan programs and requirements\n\nWhat would you like help with?");
+            appState.lastInteraction = Date.now();
+            addAIMessage("I'm here to help! You can:\n• Ask about monthly payments ('calculate payment')\n• Learn about down payments and closing costs\n• Understand terms like DTI, PMI, or APR\n• Get info on different loan programs (FHA, VA, Conventional)\n• See what documents you'll need\n\nWhat would you like to know? Remember, we still need to finish your application too!");
+            
+            setTimeout(() => {
+                if (appState.currentSection < urlaSections.length) {
+                    addAIMessage("When you're ready, we can continue with your application. We're on Section " + (appState.currentSection + 1) + " of " + urlaSections.length);
+                }
+            }, 5000);
         }
 
         function skipQuestion() {
-            addAIMessage("No problem! We'll come back to this question later.");
-            appState.currentQuestion++;
-            askCurrentQuestion();
+            appState.lastInteraction = Date.now();
+            if (appState.offTrackCount > 2) {
+                addAIMessage("I notice you're skipping several questions. These are all important for your application. Let's try to answer this one - I can help explain if it's confusing!");
+                askCurrentQuestion();
+            } else {
+                appState.offTrackCount++;
+                addAIMessage("No problem! We'll come back to this. But remember, we'll need this information eventually to process your loan.");
+                appState.currentQuestion++;
+                askCurrentQuestion();
+            }
         }
 
         function goBack() {
